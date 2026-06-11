@@ -1,10 +1,69 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Any
 
 
 JsonMap = dict[str, Any]
+
+
+class IdentityActionType(StrEnum):
+    LockIdentity = "LockIdentity"
+    DisconnectService = "DisconnectService"
+    VerifyConnection = "VerifyConnection"
+    RequestClarity = "RequestClarity"
+
+
+class IdentityActionStatus(StrEnum):
+    Completed = "Completed"
+    Reversed = "Reversed"
+
+
+class IdentityGraphNodeType(StrEnum):
+    Platform = "Platform"
+    Developer = "Developer"
+    DeveloperKey = "DeveloperKey"
+    Application = "Application"
+    Environment = "Environment"
+    User = "User"
+    Device = "Device"
+    Credential = "Credential"
+    Challenge = "Challenge"
+    Token = "Token"
+    AuditAnchor = "AuditAnchor"
+    PolicyScope = "PolicyScope"
+    ExternalService = "ExternalService"
+
+
+class IdentityGraphEdgeType(StrEnum):
+    Owns = "Owns"
+    Issued = "Issued"
+    Registered = "Registered"
+    BelongsTo = "BelongsTo"
+    AuthorizedFor = "AuthorizedFor"
+    ScopedTo = "ScopedTo"
+    Uses = "Uses"
+    PresentedBy = "PresentedBy"
+    DerivedFrom = "DerivedFrom"
+    ApprovedBy = "ApprovedBy"
+    RevokedBy = "RevokedBy"
+    AnchoredBy = "AnchoredBy"
+    ConnectedTo = "ConnectedTo"
+    ObservedOn = "ObservedOn"
+
+
+class ExposureFindingCategory(StrEnum):
+    WeakConnection = "WeakConnection"
+    UnknownConnection = "UnknownConnection"
+    StaleCredential = "StaleCredential"
+    HighRiskLinkage = "HighRiskLinkage"
+
+
+class ExposureFindingSeverity(StrEnum):
+    Low = "Low"
+    Medium = "Medium"
+    High = "High"
 
 
 @dataclass(slots=True)
@@ -25,7 +84,7 @@ class IdentityGraphScores:
 @dataclass(slots=True)
 class IdentityGraphNode:
     nodeId: str
-    nodeType: str
+    nodeType: IdentityGraphNodeType
     displayName: str
     status: str
     trustTier: str
@@ -37,7 +96,7 @@ class IdentityGraphNode:
     def from_json(payload: JsonMap) -> "IdentityGraphNode":
         return IdentityGraphNode(
             nodeId=payload["nodeId"],
-            nodeType=payload["nodeType"],
+            nodeType=IdentityGraphNodeType(payload["nodeType"]),
             displayName=payload["displayName"],
             status=payload["status"],
             trustTier=payload["trustTier"],
@@ -50,7 +109,7 @@ class IdentityGraphNode:
 @dataclass(slots=True)
 class IdentityGraphEdge:
     edgeId: str
-    edgeType: str
+    edgeType: IdentityGraphEdgeType
     fromNodeId: str
     toNodeId: str
     status: str
@@ -65,7 +124,7 @@ class IdentityGraphEdge:
     def from_json(payload: JsonMap) -> "IdentityGraphEdge":
         return IdentityGraphEdge(
             edgeId=payload["edgeId"],
-            edgeType=payload["edgeType"],
+            edgeType=IdentityGraphEdgeType(payload["edgeType"]),
             fromNodeId=payload["fromNodeId"],
             toNodeId=payload["toNodeId"],
             status=payload["status"],
@@ -102,8 +161,8 @@ class IdentityGraphSnapshot:
 @dataclass(slots=True)
 class ExposureFinding:
     findingId: str
-    category: str
-    severity: str
+    category: ExposureFindingCategory
+    severity: ExposureFindingSeverity
     summary: str
     nodeId: str | None
     edgeId: str | None
@@ -113,8 +172,8 @@ class ExposureFinding:
     def from_json(payload: JsonMap) -> "ExposureFinding":
         return ExposureFinding(
             findingId=payload["findingId"],
-            category=payload["category"],
-            severity=payload["severity"],
+            category=ExposureFindingCategory(payload["category"]),
+            severity=ExposureFindingSeverity(payload["severity"]),
             summary=payload["summary"],
             nodeId=payload.get("nodeId"),
             edgeId=payload.get("edgeId"),
@@ -144,7 +203,7 @@ class ExposureSummary:
 @dataclass(slots=True)
 class PerformIdentityActionRequest:
     subjectId: str
-    actionType: str
+    actionType: IdentityActionType | str
     targetNodeId: str | None = None
     reason: str | None = None
 
@@ -164,8 +223,8 @@ class PerformIdentityActionRequest:
 class IdentityActionRecord:
     actionId: str
     subjectId: str
-    actionType: str
-    status: str
+    actionType: IdentityActionType
+    status: IdentityActionStatus
     targetNodeId: str | None
     reason: str | None
     requestedAtUtc: str
@@ -178,8 +237,8 @@ class IdentityActionRecord:
         return IdentityActionRecord(
             actionId=payload["actionId"],
             subjectId=payload["subjectId"],
-            actionType=payload["actionType"],
-            status=payload["status"],
+            actionType=IdentityActionType(payload["actionType"]),
+            status=IdentityActionStatus(payload["status"]),
             targetNodeId=payload.get("targetNodeId"),
             reason=payload.get("reason"),
             requestedAtUtc=payload["requestedAtUtc"],

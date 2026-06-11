@@ -9,8 +9,11 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 $targetRoot = Join-Path $projectRoot "target"
 $classesRoot = Join-Path $targetRoot "classes"
 $testClassesRoot = Join-Path $targetRoot "test-classes"
-$artifactName = "aegir-security-0.1.0-Beta.1.jar"
+$artifactName = "aegir-security-0.1.1-beta-1.jar"
 $artifactPath = Join-Path $targetRoot $artifactName
+$sourcesArtifactPath = Join-Path $targetRoot "aegir-security-0.1.1-beta-1-sources.jar"
+$javadocRoot = Join-Path $targetRoot "apidocs"
+$javadocArtifactPath = Join-Path $targetRoot "aegir-security-0.1.1-beta-1-javadoc.jar"
 
 function Compile-Sources {
     param(
@@ -64,5 +67,27 @@ if ($Goals -contains "package") {
         throw "jar packaging failed."
     }
 
+    & jar --create --file $sourcesArtifactPath -C (Join-Path $projectRoot "src\main\java") .
+    if ($LASTEXITCODE -ne 0) {
+        throw "sources jar packaging failed."
+    }
+
+    $mainSources = Get-ChildItem -Recurse (Join-Path $projectRoot "src\main\java") -Filter *.java | ForEach-Object FullName
+    if ($mainSources.Count -gt 0) {
+        Remove-Item -Recurse -Force $javadocRoot -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory -Force $javadocRoot | Out-Null
+        & javadoc -quiet -d $javadocRoot @mainSources
+        if ($LASTEXITCODE -ne 0) {
+            throw "javadoc generation failed."
+        }
+
+        & jar --create --file $javadocArtifactPath -C $javadocRoot .
+        if ($LASTEXITCODE -ne 0) {
+            throw "javadoc jar packaging failed."
+        }
+    }
+
     Write-Host "Created $artifactPath"
+    Write-Host "Created $sourcesArtifactPath"
+    Write-Host "Created $javadocArtifactPath"
 }

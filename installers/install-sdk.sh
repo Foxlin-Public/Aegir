@@ -32,7 +32,7 @@ echo "Installing Aegir SDK Beta-1 components..."
 
 if [ "$INSTALL_DOTNET" = true ]; then
   echo "DotNet:"
-  echo "  dotnet add package Foxlin.Aegir.Security --version 0.1.0-Beta.1"
+  echo "  dotnet add package Foxlin.Aegir.Security --version 0.1.1-beta-1"
 fi
 
 if [ "$INSTALL_NODE" = true ]; then
@@ -61,4 +61,3 @@ if [ "$INSTALL_MCP" = true ]; then
 fi
 
 echo "Aegir SDK installation wrapper complete."
-

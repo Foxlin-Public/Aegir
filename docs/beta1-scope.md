@@ -19,7 +19,7 @@ This repository contains only the Beta-1 public SDK scope.
 - trust-core helper signing and verification utilities
 - budget envelope helpers
 - minimal in-memory agent-to-agent protocol
-- Beta-1 MCP server over the hosted SDK surface
+- local Beta-1 MCP stdio wrapper over the public SDK surface
 
 ## Excluded
 
@@ -27,4 +27,4 @@ This repository contains only the Beta-1 public SDK scope.
 - Beta-2 provider expansion
 - Beta-2 KYC redesign work
 - product-admin/runtime internals that are not part of the public SDK contract
-
+- hosted MCP deployment, production runtime deployment, or infrastructure automation

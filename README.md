@@ -1,21 +1,39 @@
 # Aegir SDK
 
-`Aegir_SDK` is the standalone Beta-1 SDK repository for Aegir Security.
+This is the standalone Beta-1 SDK repository for Aegir Security.
 
-This repo contains only Beta-1 public SDK components:
+Aegir is Foxlin's security platform for identity scanning, graph-aware exposure analysis, controlled security actions, and developer-facing SDK access over the hosted Aegir API surface.
 
-- the public language SDKs for `.NET`, `Node`, `Java`, `Python`, and `Go`
-- installation wrappers for local setup and CI bootstrap
-- example consumers for `.NET` and `Node`
-- a Beta-1 MCP server that exposes the hosted Aegir API surface through the SDK
-- a Beta-1 hosted MCP service wrapper for Foxlin-managed shared access
-- Beta-1 documentation for installation, integration, repository layout, and MCP usage
+This repository is for developers integrating against the public Beta-1 Aegir SDK surface. It does not include deployment automation, private product runtime code, internal admin code, or Beta-2 features.
 
-It does not include the private product runtime, Beta-2 work, or internal-only admin/product code.
+## Who This Is For
 
-## Beta-1 Scope
+Use this repo if you are:
 
-The SDK surface in this repo is limited to the current hosted/public Aegir Beta-1 operations:
+- integrating Aegir into an external application or service
+- building automation that needs the hosted public Aegir API
+- testing the local Beta-1 MCP stdio wrapper
+- evaluating the Beta-1 SDK surface across `.NET`, `Node`, `Java`, `Python`, or `Go`
+
+## What To Use Today
+
+The current public Beta-1 packages are:
+
+- `.NET`: `Foxlin.Aegir.Security` version `0.1.1-beta-1`
+- `Node`: `@foxlin_industries/aegir-security` version `0.1.1-beta-1`
+- `Java`: `cloud.foxlin:aegir-security` version `0.1.1-beta-1`
+- `Python`: `foxlin-aegir-security` version `0.1.1-beta-1`
+- `Go`: module `foxlin/aegir-security-go`
+
+The Beta-1 MCP wrapper is in [mcp](./mcp) and supports:
+
+- local `stdio` transport for MCP-compatible tools
+
+Hosted MCP deployment and production runtime operations are intentionally outside this repository.
+
+## Beta-1 Surface
+
+The Beta-1 API surface exposed by the SDKs and MCP server is intentionally small and stable:
 
 - `scanIdentity`
 - `getIdentityGraph`
@@ -30,52 +48,38 @@ Beta-1 package helpers also include:
 - safe envelopes
 - budget envelopes
 - minimal in-memory agent-to-agent protocol
-- trust-core helper signing and verification utilities
+- trust-core signing and verification helpers
 - diagnostics hooks
 - canonical error semantics
+- access control helpers in `.NET`
 
-## Repo Layout
+## Authentication Model
 
-- [docs](./docs): Beta-1 SDK documentation
-- [installers](./installers): wrapped installer scripts
-- [packages](./packages): language SDK packages and package-facing materials
-- [examples](./examples): small example consumers
-- [mcp](./mcp): Beta-1 MCP server for Aegir
+Beta-1 access is environment-based and API-backed.
 
-## Beta-1 Packages
-
-- `.NET`: `Foxlin.Aegir.Security` version `0.1.0-Beta.1`
-- `Node`: `@foxlin_industries/aegir-security` version `0.1.0-Beta.1`
-- `Java`: `cloud.foxlin:aegir-security` version `0.1.0-Beta.1`
-- `Python`: `foxlin-aegir-security` version `0.1.0-Beta.1`
-- `Go`: module `foxlin/aegir-security-go`
-
-## Wrapped Installers
-
-- PowerShell: [install-sdk.ps1](./installers/install-sdk.ps1)
-- Shell: [install-sdk.sh](./installers/install-sdk.sh)
-
-These wrappers bootstrap only Beta-1 SDK components and the Beta-1 MCP server.
-
-## MCP Server
-
-The MCP server lives in [mcp](./mcp) and exposes the Beta-1 hosted operations through stdio tools:
-
-- `scan_identity`
-- `get_identity_graph`
-- `get_identity_graph_json`
-- `get_exposure_summary`
-- `perform_action`
-- `reverse_action`
-- `get_action_history`
-
-Configuration is environment-based:
+SDK and local MCP integrations use:
 
 - `AEGIR_BASE_URL`
 - `AEGIR_CONFIG_KEY`
 - `AEGIR_DEVELOPER_KEY`
 
-See [docs/mcp-server.md](./docs/mcp-server.md) for details.
+In Beta-1, the SDK authenticates to the hosted Aegir API with the configured key pair.
+
+## Typical Request Lifecycle
+
+For most Beta-1 integrations, the flow is:
+
+1. configure the SDK or local MCP wrapper with the hosted Aegir base URL and developer credentials
+2. submit one of the Beta-1 operations such as `scanIdentity` or `performAction`
+3. receive a typed response or canonical error payload
+4. inspect diagnostics, envelope helpers, or action history as needed
+
+The SDK does not require direct access to private Foxlin runtime services. It talks only to the hosted/public Aegir surface defined for Beta-1.
+
+Canonical production hosts:
+
+- application host: `https://aegir.foxlinindustries.com`
+- API host: `https://api.aegir.foxlinindustries.com/apis`
 
 ## Quick Start
 
@@ -91,15 +95,45 @@ pwsh ./installers/install-sdk.ps1 -Node -DotNet -Mcp
 bash ./installers/install-sdk.sh --node --dotnet --mcp
 ```
 
+## Start Here
+
+- [.NET integration guide](./docs/integration-dotnet.md)
+- [Node integration guide](./docs/integration-node.md)
+- [Java integration guide](./docs/integration-java.md)
+- [Python integration guide](./docs/integration-python.md)
+- [Go integration guide](./docs/integration-go.md)
+- [MCP server guide](./docs/mcp-server.md)
+- [Deployment Boundary](./docs/deployment-boundary.md)
+
+## Repo Layout
+
+- [docs](./docs): Beta-1 SDK documentation
+- [installers](./installers): wrapped installer scripts
+- [packages](./packages): language SDK packages and package-facing materials
+- [examples](./examples): small example consumers
+- [mcp](./mcp): local Beta-1 stdio MCP wrapper
+
 ## Beta-1 Documents
 
 - [Beta-1 Scope](./docs/beta1-scope.md)
 - [Repository Layout](./docs/repository-layout.md)
 - [Installer Guide](./docs/installer.md)
 - [MCP Server Guide](./docs/mcp-server.md)
-- [Hosted MCP Guide](./docs/hosted-mcp.md)
+- [Deployment Boundary](./docs/deployment-boundary.md)
 - [Integration: .NET](./docs/integration-dotnet.md)
 - [Integration: Node](./docs/integration-node.md)
 - [Integration: Java](./docs/integration-java.md)
 - [Integration: Python](./docs/integration-python.md)
 - [Integration: Go](./docs/integration-go.md)
+- [Next Pass Public Repo Notes](./docs/public-repo-next-pass.md)
+
+## What This Repo Does Not Include
+
+This repo does not include:
+
+- private Foxlin product runtime code
+- hosted MCP deployment code
+- production deployment scripts or infrastructure configuration
+- unpublished admin or operator-only capabilities
+- Beta-2 features
+- release-channel recommendations beyond the current Beta-1 packages and examples in this repo

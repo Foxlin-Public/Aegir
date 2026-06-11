@@ -1,13 +1,12 @@
 {
   "name": "aegir-sdk-mcp",
-  "version": "0.1.0-Beta.1",
+  "version": "0.1.1-beta-1",
   "private": true,
   "type": "module",
-  "description": "Beta-1 MCP server for the Aegir SDK.",
+  "description": "Local Beta-1 stdio MCP server for the Aegir SDK.",
   "license": "MIT",
   "scripts": {
     "start": "node ./src/server.mjs",
-    "start:hosted": "node ./src/hosted-server.mjs",
-    "test": "node ./tests/server.test.mjs && node ./tests/hosted-server.test.mjs"
+    "test": "node ./tests/server.test.mjs"
   }
 }

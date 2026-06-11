@@ -2,7 +2,7 @@
   "name": "aegir-sdk-npm-example",
   "private": true,
   "type": "module",
-  "version": "0.1.0-Beta.1",
+  "version": "0.1.1-beta-1",
   "dependencies": {
     "@foxlin_industries/aegir-security": "file:../../packages/npm"
   },
@@ -10,4 +10,3 @@
     "start": "node ./index.mjs"
   }
 }
-

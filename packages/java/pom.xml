@@ -4,10 +4,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cloud.foxlin</groupId>
   <artifactId>aegir-security</artifactId>
-  <version>0.1.0-Beta.1</version>
+  <version>0.1.1-beta-1</version>
   <name>Aegir Security</name>
   <description>Aegir Security Beta-1 Java client.</description>
-  <url>https://github.com/Foxlin-Public/Aegir_SDK</url>
+  <url>https://aegir.foxlinindustries.com</url>
+  <packaging>jar</packaging>
 
   <licenses>
     <license>
@@ -16,9 +17,60 @@
     </license>
   </licenses>
 
+  <developers>
+    <developer>
+      <id>foxlin-industries</id>
+      <name>Foxlin Industries</name>
+      <organization>Foxlin Industries</organization>
+      <organizationUrl>https://foxlinindustries.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/Foxlin-Public/Aegir.git</connection>
+    <developerConnection>scm:git:https://github.com/Foxlin-Public/Aegir.git</developerConnection>
+    <url>https://github.com/Foxlin-Public/Aegir</url>
+    <tag>v0.1.1-beta-1</tag>
+  </scm>
+
   <properties>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>11</maven.compiler.release>
   </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.6.3</version>
+        <configuration>
+          <quiet>true</quiet>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

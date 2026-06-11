@@ -1,33 +1,39 @@
 # MCP Server
 
-The Beta-1 MCP server wraps the hosted Aegir SDK surface.
+The Beta-1 MCP package is a local stdio wrapper around the public Aegir SDK surface.
 
-Beta-1 supports two transports:
+It is included for developers who want an MCP-compatible tool process on their own machine or inside their own application environment. It is not a hosted service and it does not include deployment automation.
 
-- `stdio` for local MCP clients
-- hosted HTTP JSON-RPC for Foxlin-managed deployment
+## Boundary
 
-## Location
+This repository contains:
 
-- package: `./mcp`
-- stdio entrypoint: `./mcp/src/server.mjs`
-- hosted entrypoint: `./mcp/src/hosted-server.mjs`
+- local stdio MCP entrypoint: `mcp/src/server.mjs`
+- MCP tool-contract tests
+- SDK client wiring for the public `/v1/security/*` API surface
 
-## Configuration
+This repository does not contain:
 
-Both transports read:
+- hosted MCP deployment scripts
+- systemd service files
+- reverse-proxy configuration
+- Foxlin production runtime credentials
+- private admin/operator routes
+- private host/runtime deployment logic
+
+Hosted MCP and production deployment belong outside this SDK tree.
+
+## Required Configuration
+
+The local MCP process reads:
 
 - `AEGIR_BASE_URL`
 - `AEGIR_CONFIG_KEY`
 - `AEGIR_DEVELOPER_KEY`
 
-The hosted transport also reads:
-
-- `AEGIR_MCP_HOST`
-- `AEGIR_MCP_PORT`
-- `AEGIR_MCP_BEARER_TOKEN`
-
 ## Tools
+
+The Beta-1 MCP server exposes only the public Aegir SDK operations:
 
 - `scan_identity`
 - `get_identity_graph`
@@ -37,68 +43,27 @@ The hosted transport also reads:
 - `reverse_action`
 - `get_action_history`
 
-## Local MCP Example Configuration
+## Local stdio Configuration Example
 
 ```json
 {
   "command": "node",
-  "args": ["C:/path/to/Aegir_SDK/mcp/src/server.mjs"],
+  "args": ["C:/path/to/Aegir/mcp/src/server.mjs"],
   "env": {
-    "AEGIR_BASE_URL": "https://systems.foxlinindustries.cloud/apis",
+    "AEGIR_BASE_URL": "https://api.aegir.foxlinindustries.com/apis",
     "AEGIR_CONFIG_KEY": "set-me",
     "AEGIR_DEVELOPER_KEY": "set-me"
   }
 }
 ```
 
-## Hosted Beta-1 Endpoints
+## Expected Failure Modes
 
-The hosted transport exposes:
+In Beta-1, plan for:
 
-- `GET /health`
-- `GET /manifest`
-- `POST /mcp`
+- missing or invalid environment configuration
+- network or transport failure reaching the hosted Aegir API
+- API-side rejections returned through canonical Aegir error semantics
+- invalid tool name or malformed JSON-RPC request body
 
-The `POST /mcp` route accepts one JSON-RPC message per HTTP request and returns one JSON-RPC response body.
-
-If `AEGIR_MCP_BEARER_TOKEN` is set, requests must send:
-
-```http
-Authorization: Bearer <token>
-```
-
-## Hosted Example
-
-```bash
-AEGIR_BASE_URL=https://systems.foxlinindustries.cloud/apis \
-AEGIR_CONFIG_KEY=set-me \
-AEGIR_DEVELOPER_KEY=set-me \
-AEGIR_MCP_BEARER_TOKEN=set-me \
-node ./mcp/src/hosted-server.mjs
-```
-
-Then call:
-
-```http
-POST http://localhost:8788/mcp
-Content-Type: application/json
-Authorization: Bearer set-me
-```
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "1",
-  "method": "tools/call",
-  "params": {
-    "name": "scan_identity",
-    "arguments": {
-      "subjectId": "developer:dev_123"
-    }
-  }
-}
-```
-
-## Scope
-
-This server exposes only the current Beta-1 hosted operations. It does not add any Beta-2 tools or unpublished product internals.
+Do not log raw credentials or forward secrets in error output.

@@ -1,6 +1,8 @@
 # Installer Guide
 
-The wrapped installers bootstrap only the Beta-1 SDK and MCP components in this repository.
+The wrapped installers bootstrap only the Beta-1 SDK packages and local MCP wrapper in this repository.
+
+They do not install hosted deployment services, systemd units, reverse-proxy configuration, production runtime code, or Foxlin infrastructure automation.
 
 ## PowerShell
 
@@ -41,6 +43,5 @@ The installers:
 - print the Beta-1 SDK version
 - install package-level dependencies where required
 - build the local Node package when requested
-- prepare the MCP package for local use
+- prepare the local MCP package for stdio use
 - do not publish anything
-

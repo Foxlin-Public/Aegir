@@ -1,74 +1,73 @@
 # Aegir Security Java Package
 
-`cloud.foxlin:aegir-security` is the Beta-1 Java client for Aegir Security.
+`cloud.foxlin:aegir-security` is the Beta-1 Java SDK for Aegir Security.
 
-It provides the same hosted security surface as the existing NPM client:
+## Installation
 
-- `scanIdentity(subjectId)`
-- `getIdentityGraph(subjectId)`
-- `getIdentityGraphJson(subjectId)`
-- `getExposureSummary(subjectId)`
-- `performAction(request)`
-- `reverseAction(actionId, reason)`
-- `getActionHistory(subjectId)`
+```xml
+<dependency>
+  <groupId>cloud.foxlin</groupId>
+  <artifactId>aegir-security</artifactId>
+  <version>0.1.1-beta-1</version>
+</dependency>
+```
+
+## Quickstart
+
+```java
+import cloud.foxlin.aegir.security.*;
+
+AegirSecurityClient client = new AegirSecurityClient(
+    "https://api.aegir.foxlinindustries.com/apis",
+    System.getenv("AEGIR_CONFIG_KEY"),
+    System.getenv("AEGIR_DEVELOPER_KEY"));
+
+try {
+    SecurityModels.ScanIdentityResult scan = client.scanIdentity("developer:dev_123");
+    SecurityModels.IdentityGraphSnapshot graph = client.getIdentityGraph("developer:dev_123");
+    SecurityModels.IdentityActionRecord action = client.performAction(
+        new PerformIdentityActionRequest(
+            "developer:dev_123",
+            SecurityModels.IdentityActionType.LockIdentity,
+            null,
+            "Manual containment review."));
+} catch (AegirSecurityError ex) {
+    System.err.println(ex.getStatus() + " " + ex.getErrorCode());
+}
+```
+
+## API Reference
+
+See [Beta-1 API Reference](../../docs/api-reference-0.1.1-beta-1.md).
+
+## Supported Operations
+
+- `scanIdentity`
+- `getIdentityGraph`
+- `getIdentityGraphJson`
+- `getExposureSummary`
+- `performAction`
+- `reverseAction`
+- `getActionHistory`
+- `PortableSecurity` signing and safe-envelope helpers
+- `PortableSecurity.InMemoryBudgetEnvelopeService`
+- `PortableSecurity.InMemoryAgentToAgentProtocol`
 
 ## Error Model
 
-- unsuccessful responses throw `AegirSecurityError`
-- `getStatus()` returns the HTTP status
-- `getCode()` returns the canonical Aegir error code
-- `getCorrelationId()` returns the response correlation id when present
-- `getBody()` returns the parsed payload
+HTTP failures throw `AegirSecurityError` with `getStatus()`, `getCode()`, `getErrorCode()`, `getCorrelationId()`, and `getBody()`. Budget exhaustion throws `PortableSecurity.BudgetExhaustedError`.
 
 ## Diagnostics Hooks
 
-`AegirSecurityClient` accepts `AegirDiagnosticsHooks` for:
+`AegirSecurityClient` accepts `AegirDiagnosticsHooks`. Java uses nested event types: `AegirDiagnosticsHooks.LogEntry`, `AegirDiagnosticsHooks.MetricEvent`, and `AegirDiagnosticsHooks.TraceEvent`.
 
-- log events
-- metric events
-- trace events
+## Budget Options
 
-## Safe Envelopes
+`PortableSecurity.InMemoryBudgetEnvelopeService` accepts `PortableSecurity.BudgetEnvelopeOptions`.
 
-The Java package includes the Beta-1 portable safe-envelope helpers in `PortableSecurity`:
+Defaults:
 
-- `createSafeEnvelope(...)`
-- `validateSafeEnvelope(...)`
-- `PortableSecurity.SafeEnvelopeRecord`
-- `PortableSecurity.SafeEnvelopeValidationResult`
-- `PortableSecurity.TrustCoreSignatureEnvelope`
-
-## Trust-Core Signatures
-
-The Java package includes the Beta-1 hybrid trust-core helper surface in `PortableSecurity`:
-
-- `signChallengePayload(payload)`
-- `verifyChallengePayload(payload, signature)`
-- `signProofReceiptPayload(payload)`
-- `verifyProofReceiptPayload(payload, signature)`
-- `signIdentityTokenPayload(payload)`
-- `verifyIdentityTokenPayload(payload, signature)`
-
-## Agent-to-Agent Protocol
-
-The Java package includes the same minimal Beta-1 A2A runtime shape in `PortableSecurity`:
-
-- `PortableSecurity.InMemoryAgentToAgentProtocol`
-- `send(...)`
-- `getInbox(...)`
-- `receive(...)`
-
-The Java A2A path returns the same Beta-1 validation reasons:
-
-- `accepted`
-- `message_not_found`
-- `payload_hash_mismatch`
-- `signature_missing`
-
-## Budget Envelopes
-
-The Java package includes the same Beta-1 in-memory budgeting shape in `PortableSecurity`:
-
-- `PortableSecurity.InMemoryBudgetEnvelopeService`
-- `PortableSecurity.BudgetEnvelope`
-- `PortableSecurity.BudgetExhaustedError`
+- `identityScanLimit`: `25`
+- `externalLookupLimit`: `50`
+- `connectionGraphRebuildLimit`: `10`
+- `windowMs`: `60000`

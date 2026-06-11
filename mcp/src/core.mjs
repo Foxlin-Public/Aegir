@@ -18,7 +18,7 @@ export async function handleMessage(client, message) {
     case "initialize":
       return {
         protocolVersion: "2025-03-26",
-        serverInfo: { name: "aegir-sdk-mcp", version: "0.1.0-Beta.1" },
+        serverInfo: { name: "aegir-sdk-mcp", version: "0.1.1-beta-1" },
         capabilities: { tools: {} }
       };
     case "tools/list":

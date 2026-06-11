@@ -10,6 +10,11 @@ public final class PerformIdentityActionRequest
     private final String targetNodeId;
     private final String reason;
 
+    public PerformIdentityActionRequest(String subjectId, SecurityModels.IdentityActionType actionType, String targetNodeId, String reason)
+    {
+        this(subjectId, actionType == null ? null : actionType.name(), targetNodeId, reason);
+    }
+
     public PerformIdentityActionRequest(String subjectId, String actionType, String targetNodeId, String reason)
     {
         this.subjectId = subjectId;
@@ -35,5 +40,30 @@ public final class PerformIdentityActionRequest
         }
 
         return payload;
+    }
+
+    public String getSubjectId()
+    {
+        return subjectId;
+    }
+
+    public String getActionType()
+    {
+        return actionType;
+    }
+
+    public SecurityModels.IdentityActionType getTypedActionType()
+    {
+        return actionType == null ? null : SecurityModels.IdentityActionType.valueOf(actionType);
+    }
+
+    public String getTargetNodeId()
+    {
+        return targetNodeId;
+    }
+
+    public String getReason()
+    {
+        return reason;
     }
 }

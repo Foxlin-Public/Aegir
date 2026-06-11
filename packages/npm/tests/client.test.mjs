@@ -192,6 +192,91 @@ await test("budget service throws exhaustion error", async () => {
   });
 });
 
+await test("budget service uses canonical defaults and options wire shape", async () => {
+  const defaults = new InMemoryBudgetEnvelopeService();
+  assert.equal(defaults.getEnvelope("IdentityScan", "subject-1").limit, 25);
+  assert.equal(defaults.getEnvelope("ExternalLookup", "subject-1").limit, 50);
+  assert.equal(defaults.getEnvelope("ConnectionGraphRebuild", "subject-1").limit, 10);
+
+  const configured = new InMemoryBudgetEnvelopeService({
+    identityScanLimit: 2,
+    externalLookupLimit: 4,
+    connectionGraphRebuildLimit: 6,
+    windowMs: 30_000
+  });
+  const envelope = configured.getEnvelope("IdentityScan", "subject-1");
+  assert.equal(envelope.limit, 2);
+  assert.equal(new Date(envelope.windowEndsAtUtc).getTime() - new Date(envelope.windowStartedAtUtc).getTime(), 30_000);
+});
+
+await test("public model objects preserve beta1 JSON wire shape", async () => {
+  const payload = {
+    subjectId: "developer:dev_123",
+    graph: {
+      graphId: "graph:developer:dev_123",
+      generatedAtUtc: "2026-04-07T15:00:00Z",
+      scores: { exposureScore: 0.15, trustScore: 0.92, connectionClarityScore: 0.88 },
+      nodes: [{
+        nodeId: "developer:dev_123",
+        nodeType: "Developer",
+        displayName: "Dev 123",
+        status: "active",
+        trustTier: "verified",
+        observedAtUtc: "2026-04-07T14:59:00Z",
+        lastVerifiedAtUtc: null,
+        metadata: { region: "us" }
+      }],
+      edges: [{
+        edgeId: "edge:1",
+        edgeType: "Owns",
+        fromNodeId: "developer:dev_123",
+        toNodeId: "app:1",
+        status: "active",
+        trustWeight: 0.97,
+        evidenceType: "registration",
+        reason: "owner of record",
+        observedAtUtc: "2026-04-07T14:59:30Z",
+        lastVerifiedAtUtc: null,
+        metadata: {}
+      }],
+      metadata: {}
+    },
+    exposure: {
+      graphId: "graph:developer:dev_123",
+      generatedAtUtc: "2026-04-07T15:00:00Z",
+      exposureScore: 0.15,
+      findings: [{
+        findingId: "finding:1",
+        category: "WeakConnection",
+        severity: "Medium",
+        summary: "Weak service linkage.",
+        nodeId: "developer:dev_123",
+        edgeId: "edge:1",
+        metadata: {}
+      }],
+      summaryText: "Low exposure posture."
+    },
+    actionHistory: [{
+      actionId: "action:1",
+      subjectId: "developer:dev_123",
+      actionType: "VerifyConnection",
+      status: "Completed",
+      targetNodeId: "developer:dev_123",
+      reason: "risk response",
+      requestedAtUtc: "2026-04-07T15:01:00Z",
+      reversedAtUtc: null,
+      reverseReason: null,
+      metadata: {}
+    }]
+  };
+
+  const json = JSON.stringify(payload);
+  assert.ok(json.includes("\"nodeType\":\"Developer\""));
+  assert.ok(json.includes("\"edgeType\":\"Owns\""));
+  assert.ok(json.includes("\"category\":\"WeakConnection\""));
+  assert.ok(json.includes("\"status\":\"Completed\""));
+});
+
 await test("identity-token signature verifies and fails on tampering", async () => {
   const payload = new TextEncoder().encode("{\"userId\":\"user-1\",\"trustLevel\":4}");
   const signature = signIdentityTokenPayload(payload);

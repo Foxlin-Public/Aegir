@@ -6,9 +6,51 @@ export interface IdentityGraphScores {
   connectionClarityScore: number;
 }
 
+export type IdentityGraphNodeType =
+  | "Platform"
+  | "Developer"
+  | "DeveloperKey"
+  | "Application"
+  | "Environment"
+  | "User"
+  | "Device"
+  | "Credential"
+  | "Challenge"
+  | "Token"
+  | "AuditAnchor"
+  | "PolicyScope"
+  | "ExternalService";
+
+export type IdentityGraphEdgeType =
+  | "Owns"
+  | "Issued"
+  | "Registered"
+  | "BelongsTo"
+  | "AuthorizedFor"
+  | "ScopedTo"
+  | "Uses"
+  | "PresentedBy"
+  | "DerivedFrom"
+  | "ApprovedBy"
+  | "RevokedBy"
+  | "AnchoredBy"
+  | "ConnectedTo"
+  | "ObservedOn";
+
+export type ExposureFindingCategory =
+  | "WeakConnection"
+  | "UnknownConnection"
+  | "StaleCredential"
+  | "HighRiskLinkage";
+
+export type ExposureFindingSeverity =
+  | "Low"
+  | "Medium"
+  | "High";
+
 export interface IdentityGraphNode {
   nodeId: string;
-  nodeType: string;
+  nodeType: IdentityGraphNodeType;
   displayName: string;
   status: string;
   trustTier: string;
@@ -19,7 +61,7 @@ export interface IdentityGraphNode {
 
 export interface IdentityGraphEdge {
   edgeId: string;
-  edgeType: string;
+  edgeType: IdentityGraphEdgeType;
   fromNodeId: string;
   toNodeId: string;
   status: string;
@@ -42,8 +84,8 @@ export interface IdentityGraphSnapshot {
 
 export interface ExposureFinding {
   findingId: string;
-  category: string;
-  severity: string;
+  category: ExposureFindingCategory;
+  severity: ExposureFindingSeverity;
   summary: string;
   nodeId: string | null;
   edgeId: string | null;
@@ -64,6 +106,10 @@ export type IdentityActionType =
   | "VerifyConnection"
   | "RequestClarity";
 
+export type IdentityActionStatus =
+  | "Completed"
+  | "Reversed";
+
 export interface PerformIdentityActionRequest {
   subjectId: string;
   actionType: IdentityActionType;
@@ -75,7 +121,7 @@ export interface IdentityActionRecord {
   actionId: string;
   subjectId: string;
   actionType: IdentityActionType;
-  status: string;
+  status: IdentityActionStatus;
   targetNodeId: string | null;
   reason: string | null;
   requestedAtUtc: string;
@@ -304,9 +350,9 @@ export class InMemoryBudgetEnvelopeService {
   public constructor(options: BudgetEnvelopeOptions = {}) {
     this.windowMs = options.windowMs ?? 60_000;
     this.limits = {
-      IdentityScan: options.identityScanLimit ?? 10,
-      ExternalLookup: options.externalLookupLimit ?? 5,
-      ConnectionGraphRebuild: options.connectionGraphRebuildLimit ?? 3
+      IdentityScan: options.identityScanLimit ?? 25,
+      ExternalLookup: options.externalLookupLimit ?? 50,
+      ConnectionGraphRebuild: options.connectionGraphRebuildLimit ?? 10
     };
   }
 

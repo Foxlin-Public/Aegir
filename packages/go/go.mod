@@ -1,3 +1,3 @@
-module github.com/Foxlin-Public/Aegir_SDK/packages/go
+module foxlin/aegir-security-go
 
 go 1.22

@@ -324,20 +324,27 @@ public final class PortableSecurity
     public static final class InMemoryBudgetEnvelopeService
     {
         private final Map<String, CounterState> counters = new HashMap<>();
-        private final Map<String, Integer> limits = Map.of(
-            "IdentityScan", 10,
-            "ExternalLookup", 5,
-            "ConnectionGraphRebuild", 3);
+        private final Map<String, Integer> limits;
         private final long windowMillis;
 
         public InMemoryBudgetEnvelopeService()
         {
-            this(60_000L);
+            this(new BudgetEnvelopeOptions());
         }
 
         public InMemoryBudgetEnvelopeService(long windowMillis)
         {
-            this.windowMillis = windowMillis;
+            this(new BudgetEnvelopeOptions(25, 50, 10, windowMillis));
+        }
+
+        public InMemoryBudgetEnvelopeService(BudgetEnvelopeOptions options)
+        {
+            BudgetEnvelopeOptions resolved = options == null ? new BudgetEnvelopeOptions() : options;
+            this.limits = Map.of(
+                "IdentityScan", resolved.getIdentityScanLimit(),
+                "ExternalLookup", resolved.getExternalLookupLimit(),
+                "ConnectionGraphRebuild", resolved.getConnectionGraphRebuildLimit());
+            this.windowMillis = resolved.getWindowMs();
         }
 
         public BudgetEnvelope getEnvelope(String controlType, String subjectKey)
@@ -380,6 +387,32 @@ public final class PortableSecurity
                 remaining,
                 state.consumed >= limit);
         }
+    }
+
+    public static final class BudgetEnvelopeOptions
+    {
+        private final int identityScanLimit;
+        private final int externalLookupLimit;
+        private final int connectionGraphRebuildLimit;
+        private final long windowMs;
+
+        public BudgetEnvelopeOptions()
+        {
+            this(25, 50, 10, 60_000L);
+        }
+
+        public BudgetEnvelopeOptions(int identityScanLimit, int externalLookupLimit, int connectionGraphRebuildLimit, long windowMs)
+        {
+            this.identityScanLimit = identityScanLimit;
+            this.externalLookupLimit = externalLookupLimit;
+            this.connectionGraphRebuildLimit = connectionGraphRebuildLimit;
+            this.windowMs = windowMs;
+        }
+
+        public int getIdentityScanLimit() { return identityScanLimit; }
+        public int getExternalLookupLimit() { return externalLookupLimit; }
+        public int getConnectionGraphRebuildLimit() { return connectionGraphRebuildLimit; }
+        public long getWindowMs() { return windowMs; }
     }
 
     private static final class CounterState

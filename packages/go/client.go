@@ -57,6 +57,10 @@ type TraceEvent struct {
 	Metadata      map[string]string `json:"metadata"`
 }
 
+type AegirLogEntry = LogEntry
+type AegirMetricEvent = MetricEvent
+type AegirTraceEvent = TraceEvent
+
 type DiagnosticsHooks struct {
 	Log    func(LogEntry)
 	Metric func(MetricEvent)
@@ -202,16 +206,16 @@ func (c *AegirSecurityClient) request(operation, path, method string, body any, 
 			Value:         0,
 			Unit:          "ms",
 			ObservedAtUTC: time.Now().UTC().Format(time.RFC3339),
-			Dimensions:    map[string]string{"operation": operation, "status": "0", "errorCode": "transport_error"},
+			Dimensions:    map[string]string{"operation": operation, "status": "0", "errorCode": string(AegirErrorCodeTransportError)},
 		})
 		c.emitTrace(TraceEvent{
 			TraceName:     "request.error",
 			Operation:     operation,
 			TracePhase:    "request.error",
 			OccurredAtUTC: time.Now().UTC().Format(time.RFC3339),
-			Metadata:      map[string]string{"errorCode": "transport_error"},
+			Metadata:      map[string]string{"errorCode": string(AegirErrorCodeTransportError)},
 		})
-		return &AegirSecurityError{Status: 0, Code: "transport_error"}
+		return &AegirSecurityError{Status: 0, Code: AegirErrorCodeTransportError}
 	}
 	defer resp.Body.Close()
 
@@ -227,7 +231,7 @@ func (c *AegirSecurityClient) request(operation, path, method string, body any, 
 		Value:         0,
 		Unit:          "ms",
 		ObservedAtUTC: time.Now().UTC().Format(time.RFC3339),
-		Dimensions:    map[string]string{"operation": operation, "status": http.StatusText(resp.StatusCode), "errorCode": code},
+		Dimensions:    map[string]string{"operation": operation, "status": http.StatusText(resp.StatusCode), "errorCode": string(code)},
 	})
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -238,7 +242,7 @@ func (c *AegirSecurityClient) request(operation, path, method string, body any, 
 			Operation:     operation,
 			CorrelationID: correlationID,
 			OccurredAtUTC: time.Now().UTC().Format(time.RFC3339),
-			Metadata:      map[string]string{"status": http.StatusText(resp.StatusCode), "errorCode": code},
+			Metadata:      map[string]string{"status": http.StatusText(resp.StatusCode), "errorCode": string(code)},
 		})
 		c.emitTrace(TraceEvent{
 			TraceName:     "request.error",
@@ -246,7 +250,7 @@ func (c *AegirSecurityClient) request(operation, path, method string, body any, 
 			TracePhase:    "request.error",
 			CorrelationID: correlationID,
 			OccurredAtUTC: time.Now().UTC().Format(time.RFC3339),
-			Metadata:      map[string]string{"status": http.StatusText(resp.StatusCode), "errorCode": code},
+			Metadata:      map[string]string{"status": http.StatusText(resp.StatusCode), "errorCode": string(code)},
 		})
 		return &AegirSecurityError{Status: resp.StatusCode, Code: code, CorrelationID: correlationID, Body: string(rawBody)}
 	}
@@ -294,36 +298,36 @@ func (c *AegirSecurityClient) emitTrace(event TraceEvent) {
 	}
 }
 
-func resolveErrorCode(status int, rawBody []byte) string {
+func resolveErrorCode(status int, rawBody []byte) AegirErrorCode {
 	if len(rawBody) > 0 {
 		var payload map[string]any
 		if err := json.Unmarshal(rawBody, &payload); err == nil {
 			if code, ok := payload["code"].(string); ok && code != "" {
-				return code
+				return AegirErrorCode(code)
 			}
 			if code, ok := payload["error"].(string); ok && code != "" {
-				return code
+				return AegirErrorCode(code)
 			}
 		}
 	}
 
 	switch status {
 	case 400:
-		return "invalid_request"
+		return AegirErrorCodeInvalidRequest
 	case 401:
-		return "unauthorized"
+		return AegirErrorCodeUnauthorized
 	case 403:
-		return "forbidden"
+		return AegirErrorCodeForbidden
 	case 404:
-		return "not_found"
+		return AegirErrorCodeNotFound
 	case 409:
-		return "conflict"
+		return AegirErrorCodeConflict
 	case 429:
-		return "rate_limited"
+		return AegirErrorCodeRateLimited
 	default:
 		if status >= 500 {
-			return "server_error"
+			return AegirErrorCodeServerError
 		}
-		return "unknown_error"
+		return AegirErrorCodeUnknownError
 	}
 }

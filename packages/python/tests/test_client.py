@@ -1,17 +1,21 @@
 import json
-import pathlib
-import sys
 import unittest
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from dataclasses import asdict
 
 from foxlin_aegir_security import (
     AegirDiagnosticsHooks,
+    AegirErrorCode,
     AegirSecurityClient,
     AegirSecurityError,
+    BudgetEnvelopeOptions,
     BudgetExhaustedError,
+    ExposureFindingCategory,
+    ExposureFindingSeverity,
     InMemoryAgentToAgentProtocol,
     InMemoryBudgetEnvelopeService,
+    IdentityActionStatus,
+    IdentityActionType,
+    IdentityGraphNodeType,
     PerformIdentityActionRequest,
     create_safe_envelope,
     sign_identity_token_payload,
@@ -29,6 +33,11 @@ class AegirSecurityClientTests(unittest.TestCase):
         result = client.scanIdentity("developer:dev_123")
         self.assertEqual("developer:dev_123", result.subjectId)
         self.assertEqual("graph:developer:dev_123", result.graph.graphId)
+        self.assertEqual(IdentityGraphNodeType.User, result.graph.nodes[0].nodeType)
+        self.assertEqual(ExposureFindingCategory.WeakConnection, result.exposure.findings[0].category)
+        self.assertEqual(ExposureFindingSeverity.Medium, result.exposure.findings[0].severity)
+        self.assertEqual(IdentityActionType.VerifyConnection, result.actionHistory[0].actionType)
+        self.assertEqual(IdentityActionStatus.Completed, result.actionHistory[0].status)
 
     def test_headers_are_attached(self):
         captured = {}
@@ -60,7 +69,7 @@ class AegirSecurityClientTests(unittest.TestCase):
         client.performAction(
             PerformIdentityActionRequest(
                 subjectId="developer:dev_123",
-                actionType="VerifyConnection",
+                actionType=IdentityActionType.VerifyConnection,
                 targetNodeId="application:app_portal",
                 reason="Testing.",
             )
@@ -74,7 +83,7 @@ class AegirSecurityClientTests(unittest.TestCase):
         with self.assertRaises(AegirSecurityError) as context:
             client.getExposureSummary("developer:dev_123")
         self.assertEqual(404, context.exception.status)
-        self.assertEqual("not_found", context.exception.code)
+        self.assertEqual(AegirErrorCode.NotFound, context.exception.code)
         self.assertEqual("corr_123", context.exception.correlationId)
 
     def test_diagnostics_hooks_receive_events(self):
@@ -111,11 +120,39 @@ class AegirSecurityClientTests(unittest.TestCase):
         self.assertEqual("payload_hash_mismatch", result.reason)
 
     def test_budget_envelope_raises_when_exhausted(self):
-        service = InMemoryBudgetEnvelopeService(identity_scan_limit=1)
+        service = InMemoryBudgetEnvelopeService(BudgetEnvelopeOptions(identityScanLimit=1))
         service.consume("IdentityScan", "subject-1")
         with self.assertRaises(BudgetExhaustedError) as context:
             service.consume("IdentityScan", "subject-1")
         self.assertTrue(context.exception.envelope.isExhausted)
+
+    def test_budget_options_defaults_and_wire_shape(self):
+        service = InMemoryBudgetEnvelopeService()
+        self.assertEqual(25, service.get_envelope("IdentityScan", "subject-1").limit)
+        self.assertEqual(50, service.get_envelope("ExternalLookup", "subject-1").limit)
+        self.assertEqual(10, service.get_envelope("ConnectionGraphRebuild", "subject-1").limit)
+
+        options = BudgetEnvelopeOptions(identityScanLimit=2, externalLookupLimit=4, connectionGraphRebuildLimit=6, windowMs=30000)
+        self.assertEqual(
+            {
+                "identityScanLimit": 2,
+                "externalLookupLimit": 4,
+                "connectionGraphRebuildLimit": 6,
+                "windowMs": 30000,
+            },
+            asdict(options),
+        )
+
+    def test_dataclass_serialization_preserves_beta1_wire_shape(self):
+        result = self._transport("https://example.test/apis/v1/security/scan/developer%3Adev_123", "GET", {}, None)[1]
+        model = self._model_from_payload(result)
+        payload = asdict(model)
+
+        self.assertEqual("User", payload["graph"]["nodes"][0]["nodeType"])
+        self.assertEqual("WeakConnection", payload["exposure"]["findings"][0]["category"])
+        self.assertEqual("Medium", payload["exposure"]["findings"][0]["severity"])
+        self.assertEqual("VerifyConnection", payload["actionHistory"][0]["actionType"])
+        self.assertEqual("Completed", payload["actionHistory"][0]["status"])
 
     def test_identity_token_signature_detects_tampering(self):
         payload = b'{"userId":"user-1","trustLevel":4}'
@@ -175,7 +212,17 @@ class AegirSecurityClientTests(unittest.TestCase):
             "graphId": "graph:developer:dev_123",
             "generatedAtUtc": NOW,
             "exposureScore": 0.15,
-            "findings": [],
+            "findings": [
+                {
+                    "findingId": "finding_001",
+                    "category": "WeakConnection",
+                    "severity": "Medium",
+                    "summary": "Weak service linkage.",
+                    "nodeId": "developer:dev_123",
+                    "edgeId": None,
+                    "metadata": {},
+                }
+            ],
             "summaryText": "Low exposure posture.",
         }
 
@@ -192,6 +239,11 @@ class AegirSecurityClientTests(unittest.TestCase):
             "reverseReason": None,
             "metadata": {},
         }
+
+    def _model_from_payload(self, payload):
+        from foxlin_aegir_security import ScanIdentityResult
+
+        return ScanIdentityResult.from_json(payload)
 
 
 if __name__ == "__main__":

@@ -20,18 +20,46 @@ type InMemoryBudgetEnvelopeService struct {
 	state  map[string]budgetCounterState
 }
 
+type BudgetEnvelopeOptions struct {
+	IdentityScanLimit           int
+	ExternalLookupLimit         int
+	ConnectionGraphRebuildLimit int
+	WindowMS                    int
+}
+
 type budgetCounterState struct {
 	windowStartedAt time.Time
 	consumed        int
 }
 
-func NewInMemoryBudgetEnvelopeService() *InMemoryBudgetEnvelopeService {
+func NewInMemoryBudgetEnvelopeService(options ...BudgetEnvelopeOptions) *InMemoryBudgetEnvelopeService {
+	resolved := BudgetEnvelopeOptions{
+		IdentityScanLimit:           25,
+		ExternalLookupLimit:         50,
+		ConnectionGraphRebuildLimit: 10,
+		WindowMS:                    60000,
+	}
+	if len(options) > 0 {
+		if options[0].IdentityScanLimit != 0 {
+			resolved.IdentityScanLimit = options[0].IdentityScanLimit
+		}
+		if options[0].ExternalLookupLimit != 0 {
+			resolved.ExternalLookupLimit = options[0].ExternalLookupLimit
+		}
+		if options[0].ConnectionGraphRebuildLimit != 0 {
+			resolved.ConnectionGraphRebuildLimit = options[0].ConnectionGraphRebuildLimit
+		}
+		if options[0].WindowMS != 0 {
+			resolved.WindowMS = options[0].WindowMS
+		}
+	}
+
 	return &InMemoryBudgetEnvelopeService{
-		window: time.Minute,
+		window: time.Duration(resolved.WindowMS) * time.Millisecond,
 		limits: map[string]int{
-			"IdentityScan":           10,
-			"ExternalLookup":         5,
-			"ConnectionGraphRebuild": 3,
+			"IdentityScan":           resolved.IdentityScanLimit,
+			"ExternalLookup":         resolved.ExternalLookupLimit,
+			"ConnectionGraphRebuild": resolved.ConnectionGraphRebuildLimit,
 		},
 		state: make(map[string]budgetCounterState),
 	}

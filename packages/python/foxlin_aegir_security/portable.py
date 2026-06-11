@@ -183,6 +183,14 @@ class BudgetEnvelope:
     isExhausted: bool
 
 
+@dataclass(frozen=True, slots=True)
+class BudgetEnvelopeOptions:
+    identityScanLimit: int = 25
+    externalLookupLimit: int = 50
+    connectionGraphRebuildLimit: int = 10
+    windowMs: int = 60_000
+
+
 class BudgetExhaustedError(Exception):
     def __init__(self, envelope: BudgetEnvelope):
         super().__init__(f"Budget exhausted for {envelope.controlType} on '{envelope.subjectKey}'.")
@@ -192,18 +200,22 @@ class BudgetExhaustedError(Exception):
 class InMemoryBudgetEnvelopeService:
     def __init__(
         self,
+        options: BudgetEnvelopeOptions | None = None,
         *,
-        identity_scan_limit: int = 10,
-        external_lookup_limit: int = 5,
-        connection_graph_rebuild_limit: int = 3,
-        window_seconds: int = 60,
+        identity_scan_limit: int | None = None,
+        external_lookup_limit: int | None = None,
+        connection_graph_rebuild_limit: int | None = None,
+        window_seconds: int | None = None,
     ) -> None:
+        resolved = options or BudgetEnvelopeOptions()
         self._limits = {
-            "IdentityScan": identity_scan_limit,
-            "ExternalLookup": external_lookup_limit,
-            "ConnectionGraphRebuild": connection_graph_rebuild_limit,
+            "IdentityScan": identity_scan_limit if identity_scan_limit is not None else resolved.identityScanLimit,
+            "ExternalLookup": external_lookup_limit if external_lookup_limit is not None else resolved.externalLookupLimit,
+            "ConnectionGraphRebuild": connection_graph_rebuild_limit
+            if connection_graph_rebuild_limit is not None
+            else resolved.connectionGraphRebuildLimit,
         }
-        self._window_seconds = window_seconds
+        self._window_seconds = window_seconds if window_seconds is not None else resolved.windowMs / 1000
         self._counters: dict[str, tuple[datetime, int]] = {}
 
     def get_envelope(self, control_type: str, subject_key: str) -> BudgetEnvelope:

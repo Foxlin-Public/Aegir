@@ -3,6 +3,7 @@ dist/
 bin/
 obj/
 target/
+.gocache/
 .venv/
 __pycache__/
 *.pyc

@@ -1,149 +1,82 @@
 # Aegir Security NPM Package
 
-`@foxlin_industries/aegir-security` is the Phase 1 TypeScript client for Aegir Security.
+`@foxlin_industries/aegir-security` is the Beta-1 TypeScript SDK for Aegir Security.
 
-It currently provides a typed client for:
-
-- identity scanning
-- identity graph retrieval
-- deterministic graph JSON retrieval
-- exposure summary retrieval
-- reversible action execution
-- action reversal
-- action history lookup
-
-## Install
+## Installation
 
 ```bash
-npm install @foxlin_industries/aegir-security
+npm install @foxlin_industries/aegir-security@0.1.1-beta-1
 ```
 
-## Example
+## Quickstart
 
 ```ts
 import {
   AegirSecurityClient,
+  AegirSecurityError,
   type PerformIdentityActionRequest
 } from "@foxlin_industries/aegir-security";
 
 const client = new AegirSecurityClient({
-  baseUrl: "https://systems.foxlinindustries.cloud/apis",
+  baseUrl: "https://api.aegir.foxlinindustries.com/apis",
   configKey: process.env.AEGIR_CONFIG_KEY,
-  developerKey: process.env.AEGIR_DEVELOPER_KEY
+  developerKey: process.env.AEGIR_DEVELOPER_KEY,
+  diagnosticsHooks: {
+    log: (entry) => console.log(entry.eventName),
+    metric: (event) => console.log(event.metricName),
+    trace: (event) => console.log(event.traceName)
+  }
 });
 
-const scan = await client.scanIdentity("developer:dev_123");
-const exposure = await client.getExposureSummary("developer:dev_123");
-
-const actionRequest: PerformIdentityActionRequest = {
-  subjectId: "developer:dev_123",
-  actionType: "LockIdentity",
-  reason: "Manual containment review."
-};
-
-const action = await client.performAction(actionRequest);
-const reversed = await client.reverseAction(action.actionId, "Validation complete.");
-const history = await client.getActionHistory("developer:dev_123");
+try {
+  const scan = await client.scanIdentity("developer:dev_123");
+  const graph = await client.getIdentityGraph("developer:dev_123");
+  const actionRequest: PerformIdentityActionRequest = {
+    subjectId: "developer:dev_123",
+    actionType: "LockIdentity",
+    reason: "Manual containment review."
+  };
+  const action = await client.performAction(actionRequest);
+} catch (error) {
+  if (error instanceof AegirSecurityError) {
+    console.error(error.status, error.code, error.correlationId);
+  }
+}
 ```
 
-## Current Beta-1 Surface
+## API Reference
 
-Primary package-facing class:
+See [Beta-1 API Reference](../../docs/api-reference-0.1.1-beta-1.md).
 
-- `AegirSecurityClient`
+## Supported Operations
 
-Core methods:
+- `scanIdentity`
+- `getIdentityGraph`
+- `getIdentityGraphJson`
+- `getExposureSummary`
+- `performAction`
+- `reverseAction`
+- `getActionHistory`
+- portable crypto helpers
+- safe envelope helpers
+- `InMemoryBudgetEnvelopeService`
+- `InMemoryAgentToAgentProtocol`
 
-- `scanIdentity(subjectId)`
-- `getIdentityGraph(subjectId)`
-- `getIdentityGraphJson(subjectId)`
-- `getExposureSummary(subjectId)`
-- `performAction(request)`
-- `reverseAction(actionId, reason?)`
-- `getActionHistory(subjectId)`
+## Error Model
 
-Error model:
-
-- unsuccessful responses throw `AegirSecurityError`
-- `AegirSecurityError.status` contains the HTTP status
-- `AegirSecurityError.code` contains the canonical Aegir error code
-- `AegirSecurityError.correlationId` contains the response correlation id when present
-- `AegirSecurityError.body` contains the parsed JSON body when possible
+HTTP failures throw `AegirSecurityError` with `status`, typed `code`, `correlationId`, and `body`. Budget exhaustion throws `BudgetExhaustedError`.
 
 ## Diagnostics Hooks
 
-`AegirSecurityClient` accepts `diagnosticsHooks` with:
+Pass `diagnosticsHooks` with `log`, `metric`, and `trace` callbacks. Event shapes are `AegirLogEntry`, `AegirMetricEvent`, and `AegirTraceEvent`.
 
-- `log(entry)`
-- `metric(event)`
-- `trace(event)`
+## Budget Options
 
-## Safe Envelopes
+`InMemoryBudgetEnvelopeService` accepts `BudgetEnvelopeOptions`.
 
-The NPM package includes the Beta-1 portable safe-envelope helpers:
+Defaults:
 
-- `createSafeEnvelope(payloadType, canonicalPayload, signatureEnvelope?)`
-- `validateSafeEnvelope(envelope)`
-- `SafeEnvelopeRecord`
-- `SafeEnvelopeValidationResult`
-- `TrustCoreSignatureEnvelope`
-
-## Trust-Core Signatures
-
-The NPM package includes the Beta-1 hybrid trust-core helper surface:
-
-- `signChallengePayload(payload)`
-- `verifyChallengePayload(payload, signature)`
-- `signProofReceiptPayload(payload)`
-- `verifyProofReceiptPayload(payload, signature)`
-- `signIdentityTokenPayload(payload)`
-- `verifyIdentityTokenPayload(payload, signature)`
-
-## Agent-to-Agent Protocol
-
-The NPM package includes the same minimal Beta-1 A2A runtime shape:
-
-- `InMemoryAgentToAgentProtocol`
-- `send(...)`
-- `getInbox(...)`
-- `receive(...)`
-
-The NPM A2A path returns the same Beta-1 validation reasons:
-
-- `accepted`
-- `message_not_found`
-- `payload_hash_mismatch`
-- `signature_missing`
-
-## Budget Envelopes
-
-The NPM package includes the same Beta-1 in-memory budgeting shape:
-
-- `InMemoryBudgetEnvelopeService`
-- `BudgetEnvelope`
-- `BudgetExhaustedError`
-
-## Local Validation
-
-Current local package validation uses:
-
-- package tests in `src/Foxlin.Aegir.Npm/tests/client.test.mjs`
-- the local tarball output from `npm run pack:local`
-- the runnable sample in `samples/NpmConsumer`
-
-Typical local validation flow:
-
-```bash
-npm test
-npm run pack:local
-npm --prefix ../../samples/NpmConsumer install
-npm --prefix ../../samples/NpmConsumer run start
-```
-
-## Phase 1 Notes
-
-- This package targets the Aegir Phase 1 internal security API surface.
-- It can attach `X-Aegir-Config-Key` and `X-Aegir-Developer-Key` headers when provided.
-- The local consumer sample executes mocked calls through the packaged client surface.
-- Additional package ecosystems are tracked in `Docs/package-ecosystem-matrix.md`.
-- The NPM package is an active Phase 1 deliverable.
+- `identityScanLimit`: `25`
+- `externalLookupLimit`: `50`
+- `connectionGraphRebuildLimit`: `10`
+- `windowMs`: `60000`

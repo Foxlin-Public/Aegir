@@ -1,8 +1,57 @@
 # Aegir Security Go Package
 
-`foxlin/aegir-security-go` is the Beta-1 Go client for Aegir Security.
+`foxlin/aegir-security-go` is the Beta-1 Go SDK for Aegir Security.
 
-It provides the same hosted security surface as the existing NPM client:
+## Installation
+
+```bash
+go get foxlin/aegir-security-go@v0.1.1-beta-1
+```
+
+## Quickstart
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+
+	aegirsecurity "foxlin/aegir-security-go"
+)
+
+func main() {
+	client := aegirsecurity.NewAegirSecurityClientWithOptions(aegirsecurity.ClientOptions{
+		BaseURL:      "https://api.aegir.foxlinindustries.com/apis",
+		ConfigKey:    "sample-config-key",
+		DeveloperKey: "sample-developer-key",
+		HTTPClient:   http.DefaultClient,
+		Diagnostics: &aegirsecurity.DiagnosticsHooks{
+			Log: func(entry aegirsecurity.LogEntry) { fmt.Println(entry.EventName) },
+		},
+	})
+
+	scan, err := client.ScanIdentity("developer:dev_123")
+	if err != nil {
+		if typed, ok := err.(*aegirsecurity.AegirSecurityError); ok {
+			fmt.Println(typed.Status, typed.Code, typed.CorrelationID)
+		}
+		return
+	}
+	graph, _ := client.GetIdentityGraph(scan.SubjectID)
+	action, _ := client.PerformAction(aegirsecurity.PerformIdentityActionRequest{
+		SubjectID:  scan.SubjectID,
+		ActionType: aegirsecurity.IdentityActionTypeLockIdentity,
+	})
+	_, _ = graph, action
+}
+```
+
+## API Reference
+
+See [Beta-1 API Reference](../../docs/api-reference-0.1.1-beta-1.md).
+
+## Supported Operations
 
 - `ScanIdentity`
 - `GetIdentityGraph`
@@ -11,66 +60,26 @@ It provides the same hosted security surface as the existing NPM client:
 - `PerformAction`
 - `ReverseAction`
 - `GetActionHistory`
+- portable crypto helpers
+- safe envelope helpers
+- `NewInMemoryBudgetEnvelopeService`
+- `NewInMemoryAgentToAgentProtocol`
 
 ## Error Model
 
-- unsuccessful responses return `*AegirSecurityError`
-- `Status` contains the HTTP status
-- `Code` contains the canonical Aegir error code
-- `CorrelationID` contains the response correlation id when present
-- `Body` contains the raw response payload
+HTTP failures return `*AegirSecurityError` with `Status`, typed `Code`, `CorrelationID`, and `Body`. Budget exhaustion returns `*BudgetExhaustedError`.
 
 ## Diagnostics Hooks
 
-`NewAegirSecurityClientWithOptions(...)` accepts `DiagnosticsHooks` for:
+`DiagnosticsHooks` accepts `Log`, `Metric`, and `Trace` callbacks. Go uses idiomatic `LogEntry`, `MetricEvent`, and `TraceEvent` names, with `AegirLogEntry`, `AegirMetricEvent`, and `AegirTraceEvent` aliases.
 
-- log events
-- metric events
-- trace events
+## Budget Options
 
-## Safe Envelopes
+`NewInMemoryBudgetEnvelopeService` accepts `BudgetEnvelopeOptions`.
 
-The Go package includes the same Beta-1 safe-envelope contract used by the core runtime:
+Defaults:
 
-- `CreateSafeEnvelope(...)`
-- `ValidateSafeEnvelope(...)`
-- `SafeEnvelopeRecord`
-- `SafeEnvelopeValidationResult`
-- `TrustCoreSignatureEnvelope`
-
-## Trust-Core Signatures
-
-The Go package includes the Beta-1 hybrid trust-core helper surface:
-
-- `SignChallengePayload(payload)`
-- `VerifyChallengePayload(payload, signature)`
-- `SignProofReceiptPayload(payload)`
-- `VerifyProofReceiptPayload(payload, signature)`
-- `SignIdentityTokenPayload(payload)`
-- `VerifyIdentityTokenPayload(payload, signature)`
-
-## Agent-to-Agent Protocol
-
-The Go package includes the same minimal Beta-1 agent-to-agent runtime shape:
-
-- `NewInMemoryAgentToAgentProtocol()`
-- `Send(...)`
-- `GetInbox(...)`
-- `Receive(...)`
-
-The Go A2A path uses the safe-envelope contract for message integrity and returns the same Beta-1 validation reasons:
-
-- `accepted`
-- `message_not_found`
-- `payload_hash_mismatch`
-- `signature_missing`
-
-## Budget Envelopes
-
-The Go package includes the same Beta-1 in-memory budgeting shape:
-
-- `NewInMemoryBudgetEnvelopeService()`
-- `GetEnvelope(...)`
-- `Consume(...)`
-- `BudgetEnvelope`
-- `BudgetExhaustedError`
+- `IdentityScanLimit`: `25`
+- `ExternalLookupLimit`: `50`
+- `ConnectionGraphRebuildLimit`: `10`
+- `WindowMS`: `60000`
