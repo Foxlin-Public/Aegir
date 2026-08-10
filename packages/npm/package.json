@@ -1,6 +1,6 @@
 {
   "name": "@foxlin_industries/aegir-security",
-  "version": "0.1.1-beta-1",
+  "version": "0.1.1-beta.1",
   "description": "Aegir Security Phase 1 TypeScript client for identity graphing, exposure analysis, and reversible security actions.",
   "license": "MIT",
   "author": "Foxlin Industries",

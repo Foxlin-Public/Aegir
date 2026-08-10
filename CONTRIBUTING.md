@@ -14,4 +14,4 @@ Before opening a pull request:
 
 1. validate the package or local MCP wrapper you changed
 2. update the relevant integration or local MCP docs
-3. keep version references pinned to `0.1.1-Beta.1` unless a coordinated release change is being made
+3. keep version references pinned to `0.1.1-beta.1` unless a coordinated release change is being made

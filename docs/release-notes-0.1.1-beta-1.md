@@ -1,4 +1,4 @@
-# Aegir Security 0.1.1-beta-1 Release Notes
+# Aegir Security 0.1.1-beta.1 Release Notes
 
 ## Summary
 
@@ -32,4 +32,4 @@ The cross-language parity matrix is complete for C#, TypeScript, Java, Python, a
 
 ## Packaging Readiness
 
-Package versions are aligned to `0.1.1-beta-1` across NuGet, npm, Maven, PyPI, and Go. Package-specific publishing validation continues under the packaging readiness checklist.
+Package versions are aligned to `0.1.1-beta.1` across NuGet, npm, Maven, PyPI, and Go. Package-specific publishing validation continues under the packaging readiness checklist.

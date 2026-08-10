@@ -9,11 +9,11 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 $targetRoot = Join-Path $projectRoot "target"
 $classesRoot = Join-Path $targetRoot "classes"
 $testClassesRoot = Join-Path $targetRoot "test-classes"
-$artifactName = "aegir-security-0.1.1-beta-1.jar"
+$artifactName = "aegir-security-0.1.1-beta.1.jar"
 $artifactPath = Join-Path $targetRoot $artifactName
-$sourcesArtifactPath = Join-Path $targetRoot "aegir-security-0.1.1-beta-1-sources.jar"
+$sourcesArtifactPath = Join-Path $targetRoot "aegir-security-0.1.1-beta.1-sources.jar"
 $javadocRoot = Join-Path $targetRoot "apidocs"
-$javadocArtifactPath = Join-Path $targetRoot "aegir-security-0.1.1-beta-1-javadoc.jar"
+$javadocArtifactPath = Join-Path $targetRoot "aegir-security-0.1.1-beta.1-javadoc.jar"
 
 function Compile-Sources {
     param(

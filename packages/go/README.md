@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-go get foxlin/aegir-security-go@v0.1.1-beta-1
+go get foxlin/aegir-security-go@v0.1.1-beta.1
 ```
 
 ## Quickstart

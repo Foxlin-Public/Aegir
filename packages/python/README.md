@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-python -m pip install foxlin-aegir-security==0.1.1-beta-1
+python -m pip install foxlin-aegir-security==0.1.1-beta.1
 ```
 
 ## Quickstart

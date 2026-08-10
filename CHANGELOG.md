@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.1-beta-1
+## 0.1.1-beta.1
 
 - move the canonical Aegir application host to `https://aegir.foxlinindustries.com`
 - move the canonical Aegir API host to `https://api.aegir.foxlinindustries.com/apis`
