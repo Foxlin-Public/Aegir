@@ -1,4 +1,4 @@
-# Aegir Security Model v0.1.1-beta-1
+# Aegir Security Model v0.1.1-beta.1
 
 Status: Beta-1 documentation baseline.
 
@@ -45,15 +45,41 @@ Safe envelopes protect canonical payload integrity across SDKs. An envelope cont
 
 Validation recomputes the hash from `canonicalPayload`. If the recomputed hash does not match `payloadHash`, validation returns `payload_hash_mismatch`. If a signature envelope is present without required signature bytes, validation returns `signature_missing`.
 
-## Trust-Core Signing And Verification
+## What Aegir Actually Uses
 
-Beta-1 exposes portable trust-core helper functions in every SDK:
+Server-side, Beta-1 is post-quantum throughout. None of it runs in the SDK; the SDK's job is to
+call the API and relay what it returns.
 
-- Challenge payload signing and verification.
-- Proof-receipt payload signing and verification.
-- Identity-token payload signing and verification.
+| Concern | Algorithm | Where |
+|---|---|---|
+| Payload confidentiality, agent to agent | **ML-KEM-768** key establishment + **AES-256-GCM** | `sendAgentMessage` / `receiveAgentMessage` |
+| Origin of a protected message | **ML-DSA-65** signature over the authenticated header | same |
+| Transaction receipts | **ML-DSA-65** | `getTransactionReceipt` / `verifyTransactionReceipt` |
+| Device handoff proof | **ML-DSA-65** against the device's enrolled public key | Aegir API |
+| Access tokens | HS256 JWT | `getToken` |
+| Passwords | PBKDF2-SHA256, 210k iterations | Aegir Web host |
 
-The portable helpers are deterministic by design for cross-language parity tests and local SDK workflows. Host/native trust-core internals remain outside the public SDK surface.
+Two claims worth keeping separate: **TLS protects the network hop; the Aegir envelope protects
+the payload inside it.** Neither is a substitute for the other, and neither is described as the
+other.
+
+A protected message is bound to its transaction in three independent places - the signature, the
+key-derivation context and the AEAD additional data - so it cannot be moved to a different
+transaction, sender, recipient or action. Relay the envelope unchanged.
+
+## Portable Trust-Core Helpers (deprecated)
+
+Beta-1 still exposes portable helper functions in every SDK: challenge, proof-receipt and
+identity-token payload signing and verification.
+
+> **These helpers are not Aegir's cryptography.** They are a deterministic, **keyless**
+> digest: anyone who knows the algorithm - and it is published here, in five languages - can
+> produce a matching value. They therefore prove nothing about possession of a key, and they must
+> not be used to authenticate anything or to establish integrity against an adversary.
+>
+> They exist for cross-language parity tests and local development fixtures, and are kept in
+> Beta-1 only so existing callers keep compiling. Treat them as deprecated.
+
 
 ## Budgeting And Operational Controls
 

@@ -1,4 +1,4 @@
-# Aegir Architecture Overview v0.1.1-beta-1
+# Aegir Architecture Overview v0.1.1-beta.1
 
 Status: Beta-1 documentation baseline.
 
@@ -32,15 +32,33 @@ Public surface:
 
 ## Crypto
 
-Crypto is exposed through portable helper APIs, not through the internal host cryptography services. Beta-1 portable crypto covers challenge, proof-receipt, and identity-token signing and verification with deterministic cross-language behavior for tests and local SDK use.
+Aegir's cryptography runs **server-side**. The SDK calls the API and relays results; it performs
+no security-bearing cryptography of its own.
 
-Public surface:
+- Protected agent-to-agent payloads: **ML-KEM-768** + **AES-256-GCM**, signed **ML-DSA-65**.
+- Transaction receipts: **ML-DSA-65**, verifiable after the signing key is retired.
+- Device handoff proof: **ML-DSA-65** against an enrolled device public key.
+- Access tokens: HS256 JWT.
+
+### Portable helpers (deprecated)
+
+The SDKs also expose deterministic portable helpers, retained for cross-language parity tests and
+local fixtures:
 
 - `signChallengePayload` / `verifyChallengePayload`
 - `signProofReceiptPayload` / `verifyProofReceiptPayload`
 - `signIdentityTokenPayload` / `verifyIdentityTokenPayload`
 - `TrustCoreAlgorithmDescriptor`
 - `TrustCoreSignatureEnvelope`
+
+> **These helpers are not Aegir's cryptography.** They are a deterministic, **keyless**
+> digest: anyone who knows the algorithm - and it is published here, in five languages - can
+> produce a matching value. They therefore prove nothing about possession of a key, and they must
+> not be used to authenticate anything or to establish integrity against an adversary.
+>
+> They exist for cross-language parity tests and local development fixtures, and are kept in
+> Beta-1 only so existing callers keep compiling. Treat them as deprecated.
+
 
 ## Identity
 

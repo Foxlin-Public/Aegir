@@ -3,7 +3,7 @@
 ## Package
 
 - package: `Foxlin.Aegir.Security`
-- version: `0.1.1-beta-1`
+- version: `0.1.1-beta.1`
 
 ## What The .NET SDK Covers
 
@@ -24,8 +24,9 @@ The Beta-1 `.NET` package includes:
 The `.NET` client needs:
 
 - `AEGIR_BASE_URL`
-- `AEGIR_CONFIG_KEY`
-- `AEGIR_DEVELOPER_KEY`
+- `AEGIR_DEVELOPER_KEY` - in the form `devKeyId:secret`
+
+`AEGIR_CONFIG_KEY` is retired and must not be set. The API no longer accepts it as a credential, and it still opens pre-authentication routes - holding it in a client process is exposure with no benefit.
 
 These values identify the hosted Aegir endpoint and the developer credentials used for Beta-1 access.
 
@@ -40,6 +41,72 @@ The public Beta-1 operations are:
 - `PerformActionAsync`
 - `ReverseActionAsync`
 - `GetActionHistoryAsync`
+
+## Beta-1 Capabilities
+
+The client groups its operations into four capability properties.
+
+```csharp
+var client = new AegirSecurityHttpClient(new AegirSecurityClientOptions
+{
+    BaseUrl = Environment.GetEnvironmentVariable("AEGIR_BASE_URL")!,
+    DeveloperKey = Environment.GetEnvironmentVariable("AEGIR_DEVELOPER_KEY")
+});
+
+client.Tokens        // authentication and token lifecycle
+client.Agents        // agent identity and provider binding
+client.Transactions  // transactions, event history, signed receipts
+client.Ai            // provider invocation and protected messaging
+```
+
+### Tokens
+
+```csharp
+// Narrow to what you need. The token expires; the developer key does not.
+await client.Tokens.UseNarrowedTokenAsync("security:read transaction:read");
+```
+
+Also: `GetTokenAsync`, `IntrospectAsync`, `RevokeAsync`, `UseAgentKeyAsync`.
+
+### Agents
+
+```csharp
+AegirAgentRegistration agent = await client.Agents.RegisterAsync(
+    new AegirRegisterAgentRequest("triage-bot", Scopes: ["agent:invoke", "transaction:write"]));
+// agent.AgentKey is returned once and never again.
+```
+
+Also: `ListAsync`, `RevokeAsync`, `BindProviderAsync`.
+
+### Transactions
+
+Open the transaction **before** the protected operation, so a refusal is recorded as fully as a
+success.
+
+```csharp
+AegirTransactionSummary tx = await client.Transactions.CreateAsync(
+    new AegirCreateTransactionRequest("ai.provider.invoke"));
+
+AegirTransactionReceipt receipt = await client.Transactions.GetReceiptAsync(tx.TransactionId);
+AegirReceiptVerification check = await client.Transactions.VerifyReceiptAsync(receipt);
+```
+
+A receipt carries hashes and decisions - never payloads or personal identity - and is signed
+ML-DSA-65, so it still verifies after the signing key is retired.
+
+### Protected AI operations
+
+```csharp
+AegirProtectedMessage message = await agentClient.Ai.SendProtectedMessageAsync(
+    new AegirSendProtectedMessageRequest(tx.TransactionId, recipientAgentId,
+        "agent.finding.share", base64Payload));
+
+// Relay `message` unchanged. Every field is authenticated; an edit fails validation.
+AegirProtectedDelivery delivery = await recipientClient.Ai.ReceiveProtectedMessageAsync(message);
+```
+
+Models live in `Foxlin.Aegir.Auth.Client`. A full walkthrough is in
+[examples/dotnet](../examples/dotnet).
 
 ## Access Control Helpers
 

@@ -1,4 +1,4 @@
-# Aegir API Reference v0.1.1-beta-1
+# Aegir API Reference v0.1.1-beta.1
 
 Status: Beta-1 public API reference.
 
@@ -266,7 +266,7 @@ Models:
 Public operations:
 
 - Challenge payload: sign and verify.
-- Proof-receipt payload: sign and verify.
+- Proof-receipt payload: sign and verify. *(deprecated: keyless digest, not proof of possession - Aegir signs receipts with ML-DSA-65 server-side)*
 - Identity-token payload: sign and verify.
 
 Input shape is bytes in C#, TypeScript, Java, Python, and Go. Return shape is bytes for sign operations and boolean for verify operations.

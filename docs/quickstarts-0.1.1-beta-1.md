@@ -1,4 +1,4 @@
-# Aegir Quickstarts v0.1.1-beta-1
+# Aegir Quickstarts v0.1.1-beta.1
 
 Each example demonstrates client construction, diagnostics hooks, `scanIdentity`, `getIdentityGraph`, `performAction`, and error handling.
 
@@ -11,7 +11,6 @@ using Foxlin.Aegir.Auth.Services;
 var client = new AegirSecurityHttpClient(new AegirSecurityClientOptions
 {
     BaseUrl = "https://api.aegir.foxlinindustries.com/apis",
-    ConfigKey = Environment.GetEnvironmentVariable("AEGIR_CONFIG_KEY"),
     DeveloperKey = Environment.GetEnvironmentVariable("AEGIR_DEVELOPER_KEY"),
     DiagnosticsSink = new ConsoleDiagnosticsSink()
 });
@@ -63,7 +62,6 @@ import {
 
 const client = new AegirSecurityClient({
   baseUrl: "https://api.aegir.foxlinindustries.com/apis",
-  configKey: process.env.AEGIR_CONFIG_KEY,
   developerKey: process.env.AEGIR_DEVELOPER_KEY,
   diagnosticsHooks: {
     log: (entry) => console.log(entry.eventName),
@@ -104,7 +102,6 @@ public final class AegirQuickstart {
     public static void main(String[] args) throws Exception {
         AegirSecurityClient client = new AegirSecurityClient(
             "https://api.aegir.foxlinindustries.com/apis",
-            System.getenv("AEGIR_CONFIG_KEY"),
             System.getenv("AEGIR_DEVELOPER_KEY"),
             HttpClient.newHttpClient(),
             new AegirDiagnosticsHooks(

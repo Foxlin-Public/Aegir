@@ -1,8 +1,17 @@
-# Cross-Language Binding Matrix v0.1.1-beta-1
+# Cross-Language Binding Matrix
+
+> **Two notes before reading the table.**
+>
+> **Java and Go are not released in Beta-1.** Their columns describe source in this repository,
+> not packages you can install. Only .NET, Node and Python ship.
+>
+> **The portable `sign*` / `verify*` rows are a keyless deterministic digest**, not cryptography.
+> "Complete" there means the parity fixture matches across languages - nothing more. Aegir's real
+> cryptography is ML-KEM-768, AES-256-GCM and ML-DSA-65, and it runs server-side. v0.1.1-beta.1
 
 Status: Parity complete after Batch 3D.
 
-This document records the Batch 2C cross-language binding review for the intended Beta 1 public surface defined in `Docs/public-api-surface-0.1.1-beta-1.md`.
+This document records the Batch 2C cross-language binding review for the intended Beta 1 public surface defined in `Docs/public-api-surface-0.1.1-beta.1.md`.
 
 ## Review Inputs
 

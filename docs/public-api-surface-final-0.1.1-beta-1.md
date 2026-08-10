@@ -1,12 +1,12 @@
-# Public API Surface v0.1.1-beta-1 (Final)
+# Public API Surface v0.1.1-beta.1 (Final)
 
 Status: Final Beta 1 public surface defined and C# visibility reduced to match the compact SDK contract.
 
 This document is the Batch 2C-F public/internal reclassification pass. It uses:
 
-- `Docs/public-api-surface-0.1.1-beta-1.md`
+- `Docs/public-api-surface-0.1.1-beta.1.md`
 - `Docs/cross-language-binding-matrix-0.1.1-beta-1.md`
-- `Docs/subsystem-boundaries-0.1.1-beta-1.md`
+- `Docs/subsystem-boundaries-0.1.1-beta.1.md`
 
 The final Beta 1 surface is the compact SDK contract. Host/runtime/admin/developer/KYC/device/OIDC/proof-ledger/storage/billing implementation APIs are excluded from the public surface.
 
@@ -106,7 +106,7 @@ Keep public:
 - `validateSafeEnvelope`
 - `signChallengePayload`
 - `verifyChallengePayload`
-- `signProofReceiptPayload`
+- `signProofReceiptPayload` *(deprecated: keyless digest, see below)*
 - `verifyProofReceiptPayload`
 - `signIdentityTokenPayload`
 - `verifyIdentityTokenPayload`
@@ -273,3 +273,13 @@ Completed for parity with the C# typed public DTOs/enums:
 The intended Beta 1 public surface is defined, and the C# public type surface has been reduced to the compact SDK contract plus ASP.NET `Program` entry points for host testability.
 
 `Public API surface finalized` can be checked for Batch 2C-Fix. Cross-language binding parity is completed by Batch 3D.
+
+## Deprecated: portable trust-core helpers
+
+> **These helpers are not Aegir's cryptography.** They are a deterministic, **keyless**
+> digest: anyone who knows the algorithm - and it is published here, in five languages - can
+> produce a matching value. They therefore prove nothing about possession of a key, and they must
+> not be used to authenticate anything or to establish integrity against an adversary.
+>
+> They exist for cross-language parity tests and local development fixtures, and are kept in
+> Beta-1 only so existing callers keep compiling. Treat them as deprecated.
