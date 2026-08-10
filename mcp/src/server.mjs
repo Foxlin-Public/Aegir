@@ -1,8 +1,11 @@
 import { stdin, stdout } from "node:process";
-import { createClient, createJsonRpcError, createJsonRpcSuccess, handleMessage } from "./core.mjs";
+import { createClient, createJsonRpcError, createJsonRpcSuccess, handleMessage, narrowCredentials } from "./core.mjs";
 
 async function main() {
   const client = createClient();
+
+  // Trade the long-lived developer key for a scope-narrowed token before serving anything.
+  await narrowCredentials(client);
   let buffer = "";
 
   stdin.setEncoding("utf8");
