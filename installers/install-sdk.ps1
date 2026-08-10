@@ -37,7 +37,7 @@ if ($Node) {
 }
 
 if ($Java) {
-    Write-Host "Java:"
+    Write-Host "Java: NOT part of the Beta-1 release - building from source only."
     Push-Location (Join-Path $repoRoot "packages/java")
     mvn -q -DskipTests package
     Pop-Location
@@ -51,7 +51,7 @@ if ($Python) {
 }
 
 if ($Go) {
-    Write-Host "Go:"
+    Write-Host "Go: NOT part of the Beta-1 release - building from source only."
     Push-Location (Join-Path $repoRoot "packages/go")
     go test ./...
     Pop-Location

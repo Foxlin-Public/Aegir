@@ -13,17 +13,23 @@ Use this repo if you are:
 - integrating Aegir into an external application or service
 - building automation that needs the hosted public Aegir API
 - testing the local Beta-1 MCP stdio wrapper
-- evaluating the Beta-1 SDK surface across `.NET`, `Node`, `Java`, `Python`, or `Go`
+- evaluating the Beta-1 SDK surface across `.NET`, `Node`, or `Python`
 
 ## What To Use Today
 
-The current public Beta-1 packages are:
+The Beta-1 release covers three SDKs:
 
-- `.NET`: `Foxlin.Aegir.Security` version `0.1.1-beta-1`
-- `Node`: `@foxlin_industries/aegir-security` version `0.1.1-beta-1`
-- `Java`: `cloud.foxlin:aegir-security` version `0.1.1-beta-1`
-- `Python`: `foxlin-aegir-security` version `0.1.1-beta-1`
-- `Go`: module `foxlin/aegir-security-go`
+| Language | Package | Version |
+|---|---|---|
+| .NET | `Foxlin.Aegir.Security` | `0.1.1-beta.1` |
+| Node | `@foxlin_industries/aegir-security` | `0.1.1-beta.1` |
+| Python | `foxlin-aegir-security` | `0.1.1-beta.1` (installs as `0.1.1b1`, per PEP 440) |
+
+**Java and Go are not part of Beta-1.** Their source lives in
+[packages/java](./packages/java) and [packages/go](./packages/go) so it can be read and built
+locally, but neither is published to a package registry and neither should be depended on in
+production. `cloud.foxlin:aegir-security` is not on Maven Central, and the Go module path has no
+domain, so `go get` cannot resolve it.
 
 The Beta-1 MCP wrapper is in [mcp](./mcp) and supports:
 
@@ -33,46 +39,84 @@ Hosted MCP deployment and production runtime operations are intentionally outsid
 
 ## Beta-1 Surface
 
-The Beta-1 API surface exposed by the SDKs and MCP server is intentionally small and stable:
+Beta-1 groups its operations into five areas. Names below are the Node/Python form; .NET
+groups the same operations under `client.Tokens`, `client.Agents`, `client.Transactions` and
+`client.Ai`.
 
-- `scanIdentity`
-- `getIdentityGraph`
-- `getIdentityGraphJson`
-- `getExposureSummary`
-- `performAction`
-- `reverseAction`
-- `getActionHistory`
+**Authentication and tokens**
+`getToken`, `useNarrowedToken`, `useAgentKey`, `introspectToken`, `revokeToken`
 
-Beta-1 package helpers also include:
+Prefer a narrowed token over presenting a developer key on every request: it carries only the
+scopes you asked for, and it expires.
 
-- safe envelopes
-- budget envelopes
-- minimal in-memory agent-to-agent protocol
-- trust-core signing and verification helpers
-- diagnostics hooks
-- canonical error semantics
-- access control helpers in `.NET`
+**AI agent identity**
+`registerAgent`, `listAgents`, `revokeAgent`, `bindProvider`
+
+An agent is a principal in its own right, distinct from the developer key that manages it. It has
+its own credential, its own scopes and its own revocation. An agent can never register another
+agent or widen its own authority.
+
+**Transactions and receipts**
+`createTransaction`, `getTransaction`, `getTransactionEvents`, `getTransactionReceipt`,
+`verifyTransactionReceipt`
+
+Open a transaction *before* the protected operation. That ordering is the point: a denied or
+abandoned attempt is as auditable as a successful one. Events form a hash chain, and receipts are
+ML-DSA-65 signed and independently verifiable.
+
+**Protected AI operations**
+`listProviders`, `invokeProvider`, `sendAgentMessage`, `receiveAgentMessage`
+
+Invoke OpenAI or Anthropic through Aegir as an authenticated agent, or send a payload to another
+agent protected end to end with ML-KEM-768 key establishment, AES-256-GCM encryption and an
+ML-DSA-65 signature. A protected message is bound to its transaction and is not transferable to
+another one.
+
+**Identity security**
+`scanIdentity`, `getIdentityGraph`, `getIdentityGraphJson`, `getExposureSummary`,
+`performAction`, `reverseAction`, `getActionHistory`
+
+Also included: diagnostics hooks, canonical error semantics and budget envelopes.
 
 ## Authentication Model
 
-Beta-1 access is environment-based and API-backed.
-
-SDK and local MCP integrations use:
+Beta-1 access is environment-based and API-backed. SDK and local MCP integrations use two
+variables:
 
 - `AEGIR_BASE_URL`
-- `AEGIR_CONFIG_KEY`
-- `AEGIR_DEVELOPER_KEY`
+- `AEGIR_DEVELOPER_KEY` - in the form `devKeyId:secret`
 
-In Beta-1, the SDK authenticates to the hosted Aegir API with the configured key pair.
+`AEGIR_CONFIG_KEY` is **no longer used and must not be set**. The API stopped accepting it as a
+credential on identity-bearing routes, and it still opens pre-authentication routes, so holding it
+in a client process is exposure with no benefit.
+
+Two principal types can authenticate:
+
+- a **developer key**, which manages applications and agents, and
+- an **agent key**, which acts. Exchange it with `useAgentKey`; the resulting token names the
+  agent as the acting principal, and every agent-scoped operation reads that identity from the
+  token rather than from a request body.
 
 ## Typical Request Lifecycle
 
-For most Beta-1 integrations, the flow is:
+For an identity-security integration:
 
-1. configure the SDK or local MCP wrapper with the hosted Aegir base URL and developer credentials
-2. submit one of the Beta-1 operations such as `scanIdentity` or `performAction`
-3. receive a typed response or canonical error payload
-4. inspect diagnostics, envelope helpers, or action history as needed
+1. configure the SDK with the Aegir base URL and your developer key
+2. narrow to a scoped token with `useNarrowedToken`
+3. call an operation such as `scanIdentity` or `performAction`
+4. receive a typed response or a canonical error payload
+
+For a protected AI operation, the shape is different, and the ordering matters:
+
+1. authenticate as an agent with `useAgentKey`
+2. **open a transaction** with `createTransaction`
+3. perform the protected operation - `invokeProvider` or `sendAgentMessage` - naming that
+   transaction
+4. read `getTransactionEvents` for the decision trail, or `getTransactionReceipt` for a signed,
+   independently verifiable record
+
+Step 2 is not bookkeeping. The transaction exists before the operation so that a refusal is
+recorded as fully as a success.
 
 The SDK does not require direct access to private Foxlin runtime services. It talks only to the hosted/public Aegir surface defined for Beta-1.
 
@@ -99,10 +143,16 @@ bash ./installers/install-sdk.sh --node --dotnet --mcp
 
 - [.NET integration guide](./docs/integration-dotnet.md)
 - [Node integration guide](./docs/integration-node.md)
-- [Java integration guide](./docs/integration-java.md)
 - [Python integration guide](./docs/integration-python.md)
-- [Go integration guide](./docs/integration-go.md)
 - [MCP server guide](./docs/mcp-server.md)
+
+Not released in Beta-1, source-only:
+
+- [Java integration guide](./docs/integration-java.md)
+- [Go integration guide](./docs/integration-go.md)
+
+Also useful:
+
 - [Deployment Boundary](./docs/deployment-boundary.md)
 
 ## Repo Layout
@@ -125,7 +175,6 @@ bash ./installers/install-sdk.sh --node --dotnet --mcp
 - [Integration: Java](./docs/integration-java.md)
 - [Integration: Python](./docs/integration-python.md)
 - [Integration: Go](./docs/integration-go.md)
-- [Next Pass Public Repo Notes](./docs/public-repo-next-pass.md)
 
 ## What This Repo Does Not Include
 

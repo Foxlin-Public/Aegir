@@ -1,37 +1,53 @@
 {
-  "sdkVersion": "0.1.1-beta-1",
+  "sdkVersion": "0.1.1-beta.1",
   "betaLine": "Beta-1",
-  "packages": {
+  "packageVersionNotes": {
+    "canonical": "0.1.1-beta.1",
+    "pypiNormalized": "0.1.1b1",
+    "note": "PyPI normalises the canonical version to 0.1.1b1 under PEP 440. That display difference is expected and is not a version mismatch."
+  },
+  "published": {
     "dotnet": {
       "packageId": "Foxlin.Aegir.Security",
-      "version": "0.1.1-beta-1",
-      "source": "nuget.org"
+      "version": "0.1.1-beta.1",
+      "source": "nuget.org",
+      "status": "beta-1"
     },
     "node": {
       "packageName": "@foxlin_industries/aegir-security",
-      "version": "0.1.1-beta-1",
-      "source": "npmjs.com"
-    },
-    "java": {
-      "coordinates": "cloud.foxlin:aegir-security:0.1.1-beta-1",
-      "version": "0.1.1-beta-1",
-      "source": "maven"
+      "version": "0.1.1-beta.1",
+      "source": "npmjs.com",
+      "status": "beta-1"
     },
     "python": {
       "packageName": "foxlin-aegir-security",
-      "version": "0.1.1-beta-1",
-      "source": "pypi"
+      "version": "0.1.1-beta.1",
+      "installedVersion": "0.1.1b1",
+      "source": "pypi",
+      "status": "beta-1"
+    }
+  },
+  "notPublished": {
+    "note": "Source for these lives in this repository so it can be reviewed and built locally, but neither is part of the Beta-1 release and neither is available from a package registry. Do not depend on them in production.",
+    "java": {
+      "coordinates": "cloud.foxlin:aegir-security",
+      "source": "none",
+      "status": "source-only; not released in Beta-1",
+      "reason": "Not published to Maven Central."
     },
     "go": {
       "module": "foxlin/aegir-security-go",
-      "version": "0.1.1-beta-1",
-      "source": "go-module"
+      "source": "none",
+      "status": "source-only; not released in Beta-1",
+      "reason": "The module path has no domain, so it cannot be resolved by 'go get'. A published module needs a resolvable path."
     }
   },
   "mcp": {
     "name": "aegir-sdk-mcp",
     "protocol": "stdio",
+    "distribution": "source-only; run from this repository. Not published to npm.",
     "deployment": "none; hosted deployment is outside this repository",
+    "requiredScopes": "security:read security:write transaction:read transaction:write",
     "tools": [
       "scan_identity",
       "get_identity_graph",
@@ -39,7 +55,12 @@
       "get_exposure_summary",
       "perform_action",
       "reverse_action",
-      "get_action_history"
+      "get_action_history",
+      "open_transaction",
+      "get_transaction",
+      "get_transaction_events",
+      "get_transaction_receipt",
+      "verify_transaction_receipt"
     ]
   }
 }

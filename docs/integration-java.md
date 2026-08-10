@@ -1,9 +1,13 @@
 # Integration: Java
 
+> **Not released in Beta-1.** The Java source in this repository can be read and built locally,
+> but `cloud.foxlin:aegir-security` is **not published to Maven Central** and there is no artifact
+> to depend on. Beta-1 ships .NET, Node and Python. This guide describes source-only usage.
+
 ## Package
 
 - package: `cloud.foxlin:aegir-security`
-- version: `0.1.1-beta-1`
+- version: `0.1.1-beta.1`
 
 ## What The Java SDK Covers
 
@@ -21,8 +25,9 @@ The Beta-1 Java package includes:
 The Java client needs:
 
 - `AEGIR_BASE_URL`
-- `AEGIR_CONFIG_KEY`
-- `AEGIR_DEVELOPER_KEY`
+- `AEGIR_DEVELOPER_KEY` - in the form `devKeyId:secret`
+
+`AEGIR_CONFIG_KEY` is retired and must not be set. The API no longer accepts it as a credential, and it still opens pre-authentication routes - holding it in a client process is exposure with no benefit.
 
 ## Beta-1 Operations
 

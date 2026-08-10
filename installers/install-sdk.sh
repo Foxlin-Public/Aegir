@@ -32,7 +32,7 @@ echo "Installing Aegir SDK Beta-1 components..."
 
 if [ "$INSTALL_DOTNET" = true ]; then
   echo "DotNet:"
-  echo "  dotnet add package Foxlin.Aegir.Security --version 0.1.1-beta-1"
+  echo "  dotnet add package Foxlin.Aegir.Security --version 0.1.1-beta.1"
 fi
 
 if [ "$INSTALL_NODE" = true ]; then
@@ -41,7 +41,7 @@ if [ "$INSTALL_NODE" = true ]; then
 fi
 
 if [ "$INSTALL_JAVA" = true ]; then
-  echo "Java:"
+  echo "Java: NOT part of the Beta-1 release - building from source only."
   (cd "$REPO_ROOT/packages/java" && mvn -q -DskipTests package)
 fi
 
@@ -51,7 +51,7 @@ if [ "$INSTALL_PYTHON" = true ]; then
 fi
 
 if [ "$INSTALL_GO" = true ]; then
-  echo "Go:"
+  echo "Go: NOT part of the Beta-1 release - building from source only."
   (cd "$REPO_ROOT/packages/go" && go test ./...)
 fi
 
