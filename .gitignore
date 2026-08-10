@@ -13,3 +13,7 @@ __pycache__/
 artifacts/
 .DS_Store
 mcp/.env.hosted
+
+# Example consumers resolve the SDK by relative path; their lockfiles are
+# build noise rather than a dependency contract.
+examples/*/package-lock.json

@@ -77,7 +77,6 @@ const fetcher = async (url, init = {}) => {
 
 const client = new AegirSecurityClient({
   baseUrl: "https://api.aegir.foxlinindustries.com/apis",
-  configKey: "sample-config-key",
   developerKey: "sample-developer-key",
   fetcher
 });
