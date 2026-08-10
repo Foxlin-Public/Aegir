@@ -110,6 +110,17 @@ class AgentToAgentReceiveResult:
 
 
 class InMemoryAgentToAgentProtocol:
+    """A local, in-process message queue for development and offline tests.
+
+    .. deprecated::
+        This is a simulation, not Aegir protection. Its envelopes are not encrypted, its
+        signatures are not cryptographic, and nothing here is bound to an Aegir transaction or
+        checked against an agent identity. For real agent-to-agent protection use
+        :meth:`AegirSecurityClient.sendAgentMessage` and
+        :meth:`AegirSecurityClient.receiveAgentMessage`, which go through the server's
+        ML-KEM-768 / AES-256-GCM / ML-DSA-65 envelope.
+    """
+
     def __init__(self) -> None:
         self._inbox: dict[str, list[AgentToAgentMessageRecord]] = {}
 

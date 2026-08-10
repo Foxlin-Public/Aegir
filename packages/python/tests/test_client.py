@@ -248,3 +248,157 @@ class AegirSecurityClientTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AegirAiSurfaceTests(unittest.TestCase):
+    """Contract cover for the agent, transaction and protected-messaging capabilities.
+
+    End-to-end behaviour is proved by ``tests/live_flow.py`` against a real host. These pin the
+    paths, bodies and credential handling so a drift in the wire contract fails here first.
+
+    Written as a ``TestCase`` rather than bare functions on purpose: the repository runs
+    ``python -m unittest discover``, which silently ignores plain test functions.
+    """
+
+    @staticmethod
+    def _recording_transport(status=200, payload=None):
+        captured = {}
+
+        def transport(url, method, headers, body):
+            captured["url"] = url
+            captured["method"] = method
+            captured["headers"] = headers
+            captured["body"] = json.loads(body) if body else None
+            return status, payload if payload is not None else {}
+
+        return transport, captured
+
+    def test_create_transaction_posts_the_declared_action(self):
+        transport, captured = self._recording_transport(
+            payload={"transactionId": "AGTX-0011", "status": "Created"}
+        )
+        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+
+        result = client.createTransaction("ai.provider.invoke", targetResourceId="res_1")
+
+        self.assertEqual(captured["url"], "https://example.test/apis/v1/transactions")
+        self.assertEqual(captured["method"], "POST")
+        self.assertEqual(captured["body"]["declaredAction"], "ai.provider.invoke")
+        self.assertEqual(captured["body"]["targetResourceId"], "res_1")
+        self.assertEqual(result["transactionId"], "AGTX-0011")
+
+    def test_agent_key_grant_presents_the_key_then_uses_the_bearer_token(self):
+        transport, captured = self._recording_transport(
+            payload={"access_token": "agent.token.value", "token_type": "Bearer", "scopes": []}
+        )
+        client = AegirSecurityClient(
+            base_url="https://example.test/apis", developer_key="dev_1:secret", transport=transport
+        )
+
+        client.useAgentKey("agt_1:agent-secret")
+
+        self.assertEqual(captured["headers"]["X-Aegir-Agent-Key"], "agt_1:agent-secret")
+        self.assertEqual(captured["body"]["grantType"], "agent_key")
+
+        # From here the agent token is the credential. The developer key must not keep
+        # travelling alongside it — a request carrying both would authenticate as the wrong
+        # principal, and the agent's narrower scopes would be silently bypassed.
+        client.getTransaction("AGTX-0011")
+        self.assertEqual(captured["headers"]["Authorization"], "Bearer agent.token.value")
+        self.assertNotIn("X-Aegir-Developer-Key", captured["headers"])
+
+    def test_send_agent_message_posts_transaction_recipient_action_and_payload(self):
+        transport, captured = self._recording_transport(
+            payload={"transactionId": "AGTX-0011", "envelope": {"envelopeId": "env_1"}}
+        )
+        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+
+        client.sendAgentMessage("AGTX-0011", "agt_beta", "agent.finding.share", "cGF5bG9hZA==")
+
+        self.assertEqual(captured["url"], "https://example.test/apis/v1/ai/messages")
+        self.assertEqual(
+            captured["body"],
+            {
+                "transactionId": "AGTX-0011",
+                "recipientAgentId": "agt_beta",
+                "action": "agent.finding.share",
+                "payload": "cGF5bG9hZA==",
+            },
+        )
+
+    def test_bind_provider_never_returns_the_credential_it_sent(self):
+        transport, captured = self._recording_transport(
+            payload={
+                "bindingId": "pbnd_1",
+                "agentPrincipalId": "agt_1",
+                "providerId": "openai",
+                "allowedModelIds": [],
+                "createdAtUtc": "2026-08-09T00:00:00Z",
+                "revokedAtUtc": None,
+            }
+        )
+        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+
+        binding = client.bindProvider(
+            "agt_1", "openai", "sk-secret", allowedModelIds=["gpt-4o-mini"]
+        )
+
+        self.assertEqual(captured["url"], "https://example.test/apis/v1/agents/agt_1/providers")
+        self.assertEqual(captured["body"]["apiKey"], "sk-secret")
+
+        # A binding can be replaced but never read back.
+        self.assertNotIn("apiKey", binding)
+
+    def test_invoke_provider_reports_a_vendor_failure_as_data(self):
+        transport, _ = self._recording_transport(
+            payload={
+                "invocationId": "pinv_1",
+                "transactionId": "AGTX-0011",
+                "providerId": "openai",
+                "modelId": "gpt-4o-mini",
+                "agentPrincipalId": "agt_1",
+                "requestDigest": "abc",
+                "succeeded": False,
+                "content": None,
+                "stopReason": None,
+                "usage": None,
+                "errorKind": "RateLimited",
+                "errorMessage": "slow down",
+                "errorRetryable": True,
+            }
+        )
+        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+
+        result = client.invokeProvider(
+            "AGTX-0011", "openai", "gpt-4o-mini", [{"role": "user", "content": "hi"}]
+        )
+
+        # A vendor failure is not an exception: it is recorded exactly like a success, which is
+        # what keeps a failed call as auditable as a completed one.
+        self.assertFalse(result["succeeded"])
+        self.assertEqual(result["errorKind"], "RateLimited")
+        self.assertTrue(result["errorRetryable"])
+
+    def test_server_error_codes_outside_the_common_set_are_preserved(self):
+        # Regression: the client coerced every code into AegirErrorCode and collapsed anything
+        # unrecognised to unknown_error, so a caller could not tell an envelope rejection from
+        # any other failure. The JS client always kept the raw code; these now agree.
+        transport, _ = self._recording_transport(
+            status=403, payload={"error": "envelope_rejected", "status": "Replayed"}
+        )
+        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+
+        with self.assertRaises(AegirSecurityError) as caught:
+            client.receiveAgentMessage({"transactionId": "AGTX-0011", "envelope": {}})
+
+        self.assertEqual(caught.exception.status, 403)
+        self.assertEqual(caught.exception.code, "envelope_rejected")
+
+    def test_known_error_codes_still_resolve_to_the_enum(self):
+        transport, _ = self._recording_transport(status=403, payload={"error": "forbidden"})
+        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+
+        with self.assertRaises(AegirSecurityError) as caught:
+            client.getTransaction("AGTX-0011")
+
+        self.assertEqual(caught.exception.code, AegirErrorCode.Forbidden)

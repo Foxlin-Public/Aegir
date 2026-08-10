@@ -137,10 +137,41 @@ export interface ScanIdentityResult {
   actionHistory: IdentityActionRecord[];
 }
 
+/** A token issued by POST /v1/token. */
+export interface AegirAccessToken {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  expires_at: string;
+  scope: string;
+  scopes: string[];
+  tenant_id: string;
+  subject: string;
+}
+
+/** The response shape of POST /v1/introspect. */
+export interface AegirIntrospection {
+  active: boolean;
+  sub?: string;
+  dev?: string;
+  app?: string;
+  env?: string;
+  tenant_id?: string;
+  scopes?: string[];
+  roles?: string[];
+  exp?: number;
+}
+
 export interface AegirSecurityClientOptions {
   baseUrl: string;
   configKey?: string;
   developerKey?: string;
+  /**
+   * A signed Aegir access token. Preferred over `developerKey` for ongoing calls: a token
+   * carries only the scopes it was narrowed to and expires, whereas a developer key is a
+   * long-lived credential with the full developer scope set.
+   */
+  accessToken?: string;
   fetcher?: typeof fetch;
   diagnosticsHooks?: AegirDiagnosticsHooks;
 }
@@ -281,6 +312,187 @@ export function verifyIdentityTokenPayload(payload: Uint8Array, signature: Uint8
   return verifyPayload(payload, signature, 41, 149);
 }
 
+export interface AegirTransaction {
+  transactionId: string;
+  tenantId: string;
+  callerPrincipalType: string;
+  callerPrincipalId: string;
+  subjectPrincipalId: string | null;
+  agentPrincipalId: string | null;
+  declaredAction: string;
+  targetResourceId: string | null;
+  policyId: string | null;
+  authorizationDecision: string;
+  status: string;
+  executionOutcome: string | null;
+  requestEvidenceHash: string | null;
+  responseEvidenceHash: string | null;
+  envelopeId: string | null;
+  externalCorrelationId: string | null;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+  expiresAtUtc: string | null;
+  completedAtUtc: string | null;
+}
+
+export interface AegirTransactionEvent {
+  sequence: number;
+  eventType: string;
+  status: string;
+  occurredAtUtc: string;
+  detail: string | null;
+  evidenceHash: string | null;
+  eventHash: string;
+}
+
+/**
+ * A signed receipt for a transaction.
+ *
+ * Carries verification assertions, never the underlying protected data: no prompt, no payload,
+ * no personal identity. A holder can prove what Aegir decided without learning who it was
+ * about.
+ */
+export interface AegirTransactionReceipt {
+  transactionId: string;
+  tenantId: string;
+  callerPrincipalType: string;
+  callerPrincipalId: string;
+  subjectPrincipalId: string | null;
+  agentPrincipalId: string | null;
+  declaredAction: string;
+  targetResourceId: string | null;
+  policyId: string | null;
+  authorizationDecision: string;
+  status: string;
+  executionOutcome: string | null;
+  requestEvidenceHash: string | null;
+  responseEvidenceHash: string | null;
+  eventChainRoot: string;
+  envelopeId: string | null;
+  senderKid: string | null;
+  recipientKid: string | null;
+  createdAtUtc: string;
+  completedAtUtc: string | null;
+  issuedAtUtc: string;
+  signingKid: string;
+  algorithm: string;
+  signature: string;
+}
+
+export interface AegirReceiptVerification {
+  valid: boolean;
+  status: string;
+  detail: string | null;
+}
+
+export interface AegirAgentRecord {
+  agentId: string;
+  tenantId: string;
+  developerAccountId: string;
+  applicationId: string | null;
+  displayName: string;
+  providerId: string | null;
+  modelId: string | null;
+  status: string;
+  scopes: string[];
+  createdAtUtc: string;
+  expiresAtUtc: string | null;
+  revokedAtUtc: string | null;
+}
+
+export interface AegirAgentRegistration {
+  agent: AegirAgentRecord;
+  credentialId: string;
+  agentKey: string;
+}
+
+export interface AegirProviderBinding {
+  bindingId: string;
+  agentPrincipalId: string;
+  providerId: string;
+  allowedModelIds: string[];
+  createdAtUtc: string;
+  revokedAtUtc: string | null;
+}
+
+export interface AegirModelMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+export interface AegirInvokeProviderRequest {
+  transactionId: string;
+  providerId: string;
+  modelId: string;
+  messages: AegirModelMessage[];
+  maxOutputTokens?: number;
+  temperature?: number;
+}
+
+export interface AegirInvocationResult {
+  invocationId: string;
+  transactionId: string;
+  providerId: string;
+  modelId: string;
+  agentPrincipalId: string;
+  requestDigest: string;
+  succeeded: boolean;
+  content: string | null;
+  stopReason: string | null;
+  usage: { inputTokens: number; outputTokens: number } | null;
+  errorKind: string | null;
+  errorMessage: string | null;
+  errorRetryable: boolean;
+}
+
+/**
+ * The authenticated cleartext header of a protected envelope.
+ *
+ * Every field here is covered by the ML-DSA signature, the HKDF context and the AEAD tag.
+ * Altering any of them — including `transactionId` — makes the envelope fail validation.
+ */
+export interface AegirEnvelopeHeader {
+  version: string;
+  kemAlgorithm: string;
+  signatureAlgorithm: string;
+  aeadAlgorithm: string;
+  transactionId: string;
+  externalCorrelationId: string | null;
+  senderPrincipalId: string;
+  senderKid: string;
+  recipientPrincipalId: string;
+  recipientKid: string;
+  action: string;
+  target: string | null;
+  nonce: string;
+  issuedAtUtc: string;
+  expiresAtUtc: string;
+}
+
+/** A payload protected to one agent and authenticated to another. Binary fields are base64. */
+export interface AegirProtectedEnvelope {
+  envelopeId: string;
+  header: AegirEnvelopeHeader;
+  kemCiphertext: string;
+  aeadNonce: string;
+  ciphertext: string;
+  tag: string;
+  signature: string;
+}
+
+export interface AegirAgentMessage {
+  transactionId: string;
+  envelope: AegirProtectedEnvelope;
+}
+
+export interface AegirAgentMessageDelivery {
+  senderAgentId: string;
+  transactionId: string;
+  action: string;
+  /** Base64 payload. */
+  payload: string;
+}
+
 export class AegirSecurityError extends Error {
   public readonly status: number;
   public readonly code: AegirErrorCode;
@@ -381,6 +593,16 @@ export class InMemoryBudgetEnvelopeService {
   }
 }
 
+/**
+ * A local, in-process message queue for development and offline tests.
+ *
+ * @deprecated This is a simulation, not Aegir protection. Its envelopes are not encrypted,
+ * its signatures are not cryptographic, and nothing here is bound to an Aegir transaction or
+ * checked against an agent identity. For real agent-to-agent protection use
+ * {@link AegirSecurityClient.sendAgentMessage} and
+ * {@link AegirSecurityClient.receiveAgentMessage}, which go through the server's ML-KEM-768 /
+ * AES-256-GCM / ML-DSA-65 envelope.
+ */
 export class InMemoryAgentToAgentProtocol {
   private readonly inbox = new Map<string, AgentToAgentMessageRecord[]>();
 
@@ -450,6 +672,7 @@ export class AegirSecurityClient {
   private readonly baseUrl: string;
   private readonly configKey?: string;
   private readonly developerKey?: string;
+  private accessToken?: string;
   private readonly fetcher: typeof fetch;
   private readonly diagnosticsHooks?: AegirDiagnosticsHooks;
 
@@ -461,12 +684,54 @@ export class AegirSecurityClient {
     this.baseUrl = options.baseUrl.replace(/\/+$/, "");
     this.configKey = options.configKey;
     this.developerKey = options.developerKey;
+    this.accessToken = options.accessToken;
     this.fetcher = options.fetcher ?? globalThis.fetch;
     this.diagnosticsHooks = options.diagnosticsHooks;
 
     if (!this.fetcher) {
       throw new Error("A fetch implementation is required.");
     }
+  }
+
+  /**
+   * Exchanges the configured developer key for a signed access token.
+   *
+   * Beta-1 SDKs could call the identity-security operations but had no way to obtain,
+   * inspect or revoke a credential. `scope` narrows the grant; it can never widen it.
+   */
+  public async getToken(scope?: string): Promise<AegirAccessToken> {
+    return await this.request<AegirAccessToken>("getToken", "/token", {
+      method: "POST",
+      body: JSON.stringify({ grantType: "developer_key", scope })
+    });
+  }
+
+  /**
+   * Exchanges the developer key for a scope-narrowed token and uses it for subsequent calls.
+   *
+   * Prefer this in long-lived processes: the developer key is presented once instead of on
+   * every request, and the resulting credential carries only the scopes asked for.
+   */
+  public async useNarrowedToken(scope: string): Promise<AegirAccessToken> {
+    const token = await this.getToken(scope);
+    this.accessToken = token.access_token;
+    return token;
+  }
+
+  /** Checks whether a token is currently usable. Returns `{ active: false }` if not. */
+  public async introspectToken(token: string): Promise<AegirIntrospection> {
+    return await this.request<AegirIntrospection>("introspectToken", "/introspect", {
+      method: "POST",
+      body: JSON.stringify({ token })
+    });
+  }
+
+  /** Revokes a token. Idempotent, and does not report whether the token was known. */
+  public async revokeToken(token: string, reason?: string): Promise<void> {
+    await this.request<unknown>("revokeToken", "/token/revoke", {
+      method: "POST",
+      body: JSON.stringify({ token, reason })
+    });
   }
 
   public async scanIdentity(subjectId: string): Promise<ScanIdentityResult> {
@@ -504,6 +769,179 @@ export class AegirSecurityClient {
     return await this.request<IdentityActionRecord[]>("getActionHistory", `/security/actions/history/${encodeURIComponent(subjectId)}`);
   }
 
+  // --- Canonical transactions ------------------------------------------------------------
+  //
+  // A transaction is opened before the protected operation, so a refused or abandoned attempt
+  // is as auditable as a successful one. Nothing below creates one implicitly.
+
+  /** Opens a transaction. Requires `transaction:write`. */
+  public async createTransaction(request: {
+    declaredAction: string;
+    targetResourceId?: string;
+    subjectPrincipalId?: string;
+    externalCorrelationId?: string;
+    lifetimeMinutes?: number;
+  }): Promise<AegirTransaction> {
+    return await this.request<AegirTransaction>("createTransaction", "/transactions", {
+      method: "POST",
+      body: JSON.stringify(request)
+    });
+  }
+
+  /** Reads a transaction. Requires `transaction:read`. */
+  public async getTransaction(transactionId: string): Promise<AegirTransaction> {
+    return await this.request<AegirTransaction>(
+      "getTransaction",
+      `/transactions/${encodeURIComponent(transactionId)}`
+    );
+  }
+
+  /** Reads a transaction's hash-chained event history. Requires `transaction:read`. */
+  public async getTransactionEvents(transactionId: string): Promise<AegirTransactionEvent[]> {
+    return await this.request<AegirTransactionEvent[]>(
+      "getTransactionEvents",
+      `/transactions/${encodeURIComponent(transactionId)}/events`
+    );
+  }
+
+  /**
+   * Issues a signed receipt for a transaction. Requires `transaction:read`.
+   *
+   * Audit authority is deliberately narrow: it proves what Aegir decided and did. It does not
+   * resolve an opaque principal to a person, and it does not decrypt anything.
+   */
+  public async getTransactionReceipt(transactionId: string): Promise<AegirTransactionReceipt> {
+    return await this.request<AegirTransactionReceipt>(
+      "getTransactionReceipt",
+      `/transactions/${encodeURIComponent(transactionId)}/receipt`
+    );
+  }
+
+  /** Verifies a previously issued receipt, including whether its key was valid when it signed. */
+  public async verifyTransactionReceipt(receipt: AegirTransactionReceipt): Promise<AegirReceiptVerification> {
+    return await this.request<AegirReceiptVerification>(
+      "verifyTransactionReceipt",
+      "/transactions/receipt/verify",
+      { method: "POST", body: JSON.stringify({ receipt }) }
+    );
+  }
+
+  // --- AI agent identity -------------------------------------------------------------------
+
+  /**
+   * Registers an agent and returns its credential.
+   *
+   * `agentKey` is returned once and never again. Requires `agent:write`, which an agent itself
+   * can never hold — an agent acts, it does not administer.
+   */
+  public async registerAgent(request: {
+    displayName: string;
+    providerId?: string;
+    modelId?: string;
+    applicationId?: string;
+    scopes?: string[];
+    lifetimeMinutes?: number;
+  }): Promise<AegirAgentRegistration> {
+    return await this.request<AegirAgentRegistration>("registerAgent", "/agents", {
+      method: "POST",
+      body: JSON.stringify(request)
+    });
+  }
+
+  /** Lists agents owned by the caller's developer account. Requires `agent:read`. */
+  public async listAgents(): Promise<AegirAgentRecord[]> {
+    return await this.request<AegirAgentRecord[]>("listAgents", "/agents");
+  }
+
+  /** Revokes an agent. Requires `agent:write`. */
+  public async revokeAgent(agentId: string): Promise<AegirAgentRecord> {
+    return await this.request<AegirAgentRecord>(
+      "revokeAgent",
+      `/agents/${encodeURIComponent(agentId)}/revoke`,
+      { method: "POST" }
+    );
+  }
+
+  /** Exchanges an `agentId:secret` pair for an agent token and uses it for subsequent calls. */
+  public async useAgentKey(agentKey: string, scope?: string): Promise<AegirAccessToken> {
+    const token = await this.request<AegirAccessToken>("useAgentKey", "/token", {
+      method: "POST",
+      headers: { "X-Aegir-Agent-Key": agentKey },
+      body: JSON.stringify({ grantType: "agent_key", scope })
+    });
+
+    this.accessToken = token.access_token;
+    return token;
+  }
+
+  // --- Provider invocation -----------------------------------------------------------------
+
+  /** Lists providers this deployment can invoke. Requires `agent:read`. */
+  public async listProviders(): Promise<{ providerId: string }[]> {
+    return await this.request<{ providerId: string }[]>("listProviders", "/providers");
+  }
+
+  /**
+   * Binds an agent to a vendor credential. Requires `agent:write`.
+   *
+   * The key is encrypted at rest and never returned. Naming `allowedModelIds` narrows the agent
+   * to the models its purpose requires.
+   */
+  public async bindProvider(
+    agentId: string,
+    request: { providerId: string; apiKey: string; allowedModelIds?: string[] }
+  ): Promise<AegirProviderBinding> {
+    return await this.request<AegirProviderBinding>(
+      "bindProvider",
+      `/agents/${encodeURIComponent(agentId)}/providers`,
+      { method: "POST", body: JSON.stringify(request) }
+    );
+  }
+
+  /**
+   * Invokes a model provider as the authenticated agent. Requires `agent:invoke`.
+   *
+   * The acting identity comes from the token, never from this request. A vendor failure is
+   * returned as `succeeded: false` with a normalized `errorKind` rather than thrown, so a
+   * failed call is recorded exactly like a successful one.
+   */
+  public async invokeProvider(request: AegirInvokeProviderRequest): Promise<AegirInvocationResult> {
+    return await this.request<AegirInvocationResult>("invokeProvider", "/ai/invocations", {
+      method: "POST",
+      body: JSON.stringify(request)
+    });
+  }
+
+  // --- Protected agent-to-agent messaging --------------------------------------------------
+
+  /**
+   * Protects a payload to another agent and binds it to a transaction. Requires `agent:message`.
+   *
+   * The returned envelope is not transferable: moving it to a different transaction, sender,
+   * recipient or action makes it fail validation.
+   */
+  public async sendAgentMessage(request: {
+    transactionId: string;
+    recipientAgentId: string;
+    action: string;
+    /** Base64 payload. */
+    payload: string;
+  }): Promise<AegirAgentMessage> {
+    return await this.request<AegirAgentMessage>("sendAgentMessage", "/ai/messages", {
+      method: "POST",
+      body: JSON.stringify(request)
+    });
+  }
+
+  /** Opens a protected message addressed to the authenticated agent. Requires `agent:message`. */
+  public async receiveAgentMessage(message: AegirAgentMessage): Promise<AegirAgentMessageDelivery> {
+    return await this.request<AegirAgentMessageDelivery>(
+      "receiveAgentMessage",
+      "/ai/messages/receive",
+      { method: "POST", body: JSON.stringify(message) }
+    );
+  }
+
   private async request<T>(operation: string, path: string, init: RequestInit = {}): Promise<T> {
     const headers = new Headers(init.headers);
     headers.set("Accept", "application/json");
@@ -516,7 +954,11 @@ export class AegirSecurityClient {
       headers.set("X-Aegir-Config-Key", this.configKey);
     }
 
-    if (this.developerKey) {
+    // A bearer token takes precedence: once one has been obtained there is no reason to keep
+    // presenting the long-lived developer key on every request.
+    if (this.accessToken) {
+      headers.set("Authorization", `Bearer ${this.accessToken}`);
+    } else if (this.developerKey) {
       headers.set("X-Aegir-Developer-Key", this.developerKey);
     }
 
