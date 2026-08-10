@@ -8,7 +8,7 @@
 <dependency>
   <groupId>cloud.foxlin</groupId>
   <artifactId>aegir-security</artifactId>
-  <version>0.1.1-beta-1</version>
+  <version>0.1.1-beta.1</version>
 </dependency>
 ```
 
@@ -19,7 +19,6 @@ import cloud.foxlin.aegir.security.*;
 
 AegirSecurityClient client = new AegirSecurityClient(
     "https://api.aegir.foxlinindustries.com/apis",
-    System.getenv("AEGIR_CONFIG_KEY"),
     System.getenv("AEGIR_DEVELOPER_KEY"));
 
 try {

@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-npm install @foxlin_industries/aegir-security@0.1.1-beta-1
+npm install @foxlin_industries/aegir-security@0.1.1-beta.1
 ```
 
 ## Quickstart
@@ -19,7 +19,6 @@ import {
 
 const client = new AegirSecurityClient({
   baseUrl: "https://api.aegir.foxlinindustries.com/apis",
-  configKey: process.env.AEGIR_CONFIG_KEY,
   developerKey: process.env.AEGIR_DEVELOPER_KEY,
   diagnosticsHooks: {
     log: (entry) => console.log(entry.eventName),
