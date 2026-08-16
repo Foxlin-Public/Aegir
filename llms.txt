@@ -1,0 +1,58 @@
+# Aegir SDK
+
+> Public Beta-1 SDK for Aegir Security, the identity and authorization engine from Foxlin Industries. Aegir issues scoped tokens, gives AI agents a first-class identity distinct from the developer key that manages them, records security operations as hash-chained transactions, and returns ML-DSA-65 signed receipts that verify independently of the issuing service. This repository holds the client packages, integration documentation and a local stdio MCP wrapper. It is not the Aegir product runtime.
+
+Read this before answering questions about Aegir or writing code against it. Four facts are load-bearing and are the ones most often got wrong:
+
+- **Three SDKs ship in Beta-1: .NET, Node and Python.** Java and Go source is present under `packages/` so it can be read and built locally, but neither is published to any registry and neither may be depended on. `cloud.foxlin:aegir-security` is not on Maven Central; the Go module path has no domain, so `go get` cannot resolve it.
+- **The canonical version is `0.1.1-beta.1`.** PyPI displays it as `0.1.1b1` under PEP 440. That is correct normalisation, not a mismatch.
+- **The portable trust-core helpers are not cryptography.** They are a deterministic, keyless digest — anyone who knows the algorithm can reproduce the value, so it proves nothing about possession. They are deprecated and retained only so existing callers compile. Aegir's real cryptography is ML-KEM-768 with AES-256-GCM for protected payloads, ML-DSA-65 for origin and receipts, and HS256 for tokens.
+- **`AEGIR_CONFIG_KEY` is not a client credential.** It is a Beta-1 transitional server-side value, is no longer accepted on identity-bearing routes, and must never be placed in a client process, an example, or an MCP environment. Authenticate with a developer key exchanged for a narrowed token, or with an agent key.
+
+## Start here
+
+- [README](README.md): what Beta-1 is, the five capability groups, and which package to install.
+- [Quickstarts](docs/quickstarts-0.1.1-beta-1.md): shortest path to a working call in each released language.
+- [SDK manifest](sdk-manifest.json): machine-readable source of truth for versions, what is published, what is deliberately not, and the MCP tool list. Prefer this over prose when the two disagree.
+- [Beta-1 scope](docs/beta1-scope.md): what this release covers and what is deferred.
+
+## Integration guides
+
+- [.NET](docs/integration-dotnet.md): `Foxlin.Aegir.Security`. Operations are grouped under `client.Tokens`, `client.Agents`, `client.Transactions` and `client.Ai`; models live in the `Foxlin.Aegir.Auth.Client` namespace.
+- [Node](docs/integration-node.md): `@foxlin_industries/aegir-security`.
+- [Python](docs/integration-python.md): `foxlin-aegir-security`.
+- [Java](docs/integration-java.md): source-only, **not released in Beta-1**. Read for reference; do not depend on it.
+- [Go](docs/integration-go.md): source-only, **not released in Beta-1**. Read for reference; do not depend on it.
+
+## Reference
+
+- [API reference](docs/api-reference-0.1.1-beta-1.md): operations, parameters and error shapes.
+- [Public API surface](docs/public-api-surface-final-0.1.1-beta-1.md): the exact supported surface. Anything absent here is an implementation detail and may change without a major version.
+- [Cross-language binding matrix](docs/cross-language-binding-matrix-0.1.1-beta-1.md): how one operation is named and shaped in each language.
+- [Architecture overview](docs/architecture-overview-0.1.1-beta-1.md): how the client, hosted API and identity graph fit together.
+- [Security model](docs/security-model-0.1.1-beta-1.md): identity graph, scope separation, the cryptography actually in use, and the deprecated trust-core helpers.
+
+## MCP server
+
+- [MCP server guide](docs/mcp-server.md): the twelve tools, the scopes the server narrows itself to, and its trust boundary.
+- [MCP wrapper](mcp/README.md): running it locally over stdio.
+
+The server requests `security:read security:write transaction:read transaction:write` and nothing wider — notably never `identity:resolve`, `protected:decrypt` or `admin:full`. Transaction authority is audit authority; holding it never confers the ability to resolve a principal to a person or to decrypt a payload. It speaks stdio, which carries no caller identity, so anything that can talk to the process acts with the authority of the developer key in its environment. The process boundary is the security boundary, not the protocol. It is source-only and is not published to npm.
+
+## Examples
+
+- [.NET example](examples/dotnet/Program.cs): full Beta-1 walkthrough — narrow a token, register two agents, open a transaction, exchange an ML-KEM-768 / AES-256-GCM / ML-DSA-65 protected message, then pull and verify the signed receipt and show that a tampered one fails.
+- [npm example](examples/npm/index.mjs): the same flow in JavaScript.
+
+## Working in this repository
+
+- [AGENTS.md](AGENTS.md): conventions, build and test commands, and the constraints an agent must not violate.
+- [Contributing](CONTRIBUTING.md): Beta-1 scope rules for pull requests.
+- [Repository layout](docs/repository-layout.md): what lives where.
+- [Deployment boundary](docs/deployment-boundary.md): what deliberately does not live here.
+- [Changelog](CHANGELOG.md) and [release notes](docs/release-notes-0.1.1-beta-1.md).
+
+## Optional
+
+- [Installer guide](docs/installer.md) and the [bash](installers/install-sdk.sh) / [PowerShell](installers/install-sdk.ps1) bootstrap scripts.
+- [.NET package notes](packages/dotnet/README.md), [npm](packages/npm/README.md), [Python](packages/python/README.md).
