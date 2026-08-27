@@ -1,45 +1,45 @@
 {
-  "sdkVersion": "0.1.1-beta.1",
+  "sdkVersion": "0.1.2-beta.1",
   "betaLine": "Beta-1",
   "packageVersionNotes": {
-    "canonical": "0.1.1-beta.1",
-    "pypiNormalized": "0.1.1b1",
+    "canonical": "0.1.2-beta.1",
+    "pypiNormalized": "0.1.2b1",
     "note": "PyPI normalises the canonical version to 0.1.1b1 under PEP 440. That display difference is expected and is not a version mismatch."
   },
   "published": {
     "dotnet": {
       "packageId": "Foxlin.Aegir.Security",
-      "version": "0.1.1-beta.1",
+      "version": "0.1.0-beta.1",
       "source": "nuget.org",
-      "status": "beta-1"
+      "status": "published"
     },
     "node": {
       "packageName": "@foxlin_industries/aegir-security",
-      "version": "0.1.1-beta.1",
+      "version": "0.1.0-Beta.1",
       "source": "npmjs.com",
-      "status": "beta-1"
-    },
-    "python": {
-      "packageName": "foxlin-aegir-security",
-      "version": "0.1.1-beta.1",
-      "installedVersion": "0.1.1b1",
-      "source": "pypi",
-      "status": "beta-1"
+      "status": "published",
+      "note": "Published with a capital B. The registry spelling is 0.1.0-Beta.1."
     }
   },
   "notPublished": {
-    "note": "Source for these lives in this repository so it can be reviewed and built locally, but neither is part of the Beta-1 release and neither is available from a package registry. Do not depend on them in production.",
+    "note": "Source lives in this repository so it can be read and built locally. None of these is available from a package registry. Verified against the registries 2026-08-26.",
+    "python": {
+      "packageName": "foxlin-aegir-security",
+      "source": "none",
+      "status": "not published",
+      "reason": "pypi.org returns HTTP 404 for this name. It was previously listed here as published."
+    },
     "java": {
       "coordinates": "cloud.foxlin:aegir-security",
       "source": "none",
-      "status": "source-only; not released in Beta-1",
+      "status": "not published",
       "reason": "Not published to Maven Central."
     },
     "go": {
       "module": "foxlin/aegir-security-go",
       "source": "none",
-      "status": "source-only; not released in Beta-1",
-      "reason": "The module path has no domain, so it cannot be resolved by 'go get'. A published module needs a resolvable path."
+      "status": "not published",
+      "reason": "The module path has no domain, so go get cannot resolve it."
     }
   },
   "mcp": {
@@ -62,5 +62,9 @@
       "get_transaction_receipt",
       "verify_transaction_receipt"
     ]
+  },
+  "unreleasedWorkingVersion": {
+    "version": "0.1.2-beta.1",
+    "note": "The version this source tree builds. No registry carries it. Do not describe it as available until a publish has run and been verified against the registry."
   }
 }

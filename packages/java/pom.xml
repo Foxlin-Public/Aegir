@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cloud.foxlin</groupId>
   <artifactId>aegir-security</artifactId>
-  <version>0.1.1-beta.1</version>
+  <version>0.1.2-beta.1</version>
   <name>Aegir Security</name>
   <description>Aegir Security Beta-1 Java client.</description>
   <url>https://aegir.foxlinindustries.com</url>

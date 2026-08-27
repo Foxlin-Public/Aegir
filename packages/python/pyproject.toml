@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "foxlin-aegir-security"
-version = "0.1.1-beta.1"
+version = "0.1.2b1"
 description = "Aegir Security Beta-1 Python client."
 readme = "README.md"
 license = "MIT"

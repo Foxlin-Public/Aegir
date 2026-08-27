@@ -1,6 +1,6 @@
 {
   "name": "aegir-sdk-mcp",
-  "version": "0.1.1-beta.1",
+  "version": "0.1.2-beta.1",
   "private": true,
   "type": "module",
   "description": "Local Beta-1 stdio MCP server for the Aegir SDK.",

@@ -2,7 +2,7 @@
 
 This is the standalone Beta-1 SDK repository for Aegir Security.
 
-Aegir is Foxlin's security platform for identity scanning, graph-aware exposure analysis, controlled security actions, and developer-facing SDK access over the hosted Aegir API surface.
+Aegir is Foxlin Industries' identity, authentication and authorization engine. It issues scoped, expiring access tokens; gives an AI agent a first-class identity of its own, distinct from the developer key that manages it; records security operations as hash-chained transactions; and returns ML-DSA-65 signed receipts that verify independently of the service that issued them. Applications call it to answer who a caller is, what they may do, and what they did.
 
 This repository is for developers integrating against the public Beta-1 Aegir SDK surface. It does not include deployment automation, private product runtime code, internal admin code, or Beta-2 features.
 
