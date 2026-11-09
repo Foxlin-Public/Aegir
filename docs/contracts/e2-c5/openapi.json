@@ -1,0 +1,729 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Aegir E2-C5 MCP Security Skill source contract",
+    "version": "c5-source-v1",
+    "description": "Unreleased source-only bounded compiled registry inspection. No package publication, tool execution, external host attestation or HTTP/stdio parity claim. Native acceptance remains pending."
+  },
+  "paths": {
+    "/v1/skills/v2/mcp-security-inspection": {
+      "post": {
+        "operationId": "api_post_v1_skills_v2_mcp_security_inspection",
+        "summary": "Inspect one existing exact managed MCP tool entry contract under current independent Human inspection authority",
+        "x-aegir-host": "api",
+        "x-aegir-authorization": "Current Agent plus exact installed ags2 chain, original current Human with non-platform scoped inspection source/session and staff relationship, exact application/group read policy, reviewed Auth artifact, publisher/platform approval, organization enablement, current installed instance and fresh Skill-specific consent. This is never MCP tool execution authority.",
+        "x-aegir-organization-context": "Exact originally consented organization/group/application/developer binding and tool/host/transport/contractVersion; no arbitrary remote host, ancestor, sibling, customer-only or foreign-tenant reach.",
+        "x-aegir-identity-type": "Current Agent root or narrower child; Developer credentials do not prove Human presence or approval.",
+        "x-aegir-license": "Inspector rights are independent of target tool business membership/license or execution permission. This endpoint does not evaluate or grant those entitlements.",
+        "x-aegir-idempotency": "Exact immutable operationId and intent. Duplicate no private metadata redisclosure, explicit status only nonsecret current reconciliation. Missing or failed evidence is never Abort; no automatic retry.",
+        "x-aegir-limits": "14 exact fields;4096-byte server request;per-manifest bounded Skill output and16384-byte .NET client response bound;finite reserved uses/history;no refunds/pruning;managed custom HTTP only. Metadata65536/262144/30000 are inspected MCP dispatcher bounds, not this endpoint limits.",
+        "security": [
+          {
+            "AgentKey": [],
+            "InstalledDelegation": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/McpSecurityExecutionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bounded initial current compiled contract observation or nonsecret durable reconciliation; never an execution grant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpSecurityExecutionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid exact supported request or query/content-encoding contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Upstream current-credential admission refused where applicable; upstream response can be empty"
+          },
+          "403": {
+            "description": "Current authority/profile refused, or HTTPS required; authority refusal has JSON {outcome}; HTTPS-required refusal can be empty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Immutable operation, revision or lifecycle conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required; empty response"
+          },
+          "429": {
+            "description": "Retained history/use capacity exhausted; no eviction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Current authority or evidence unverifiable; reconcile original identity, never infer Abort",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AgentKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Agent-Key"
+      },
+      "InstalledDelegation": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Delegation"
+      }
+    },
+    "schemas": {
+      "McpSecurityExecutionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "execute",
+              "status"
+            ]
+          },
+          "operationId": {
+            "type": "string",
+            "pattern": "^[0-9A-Fa-f]{32}$",
+            "not": {
+              "const": "00000000000000000000000000000000"
+            },
+            "description": "Exact N-format nonempty Guid; canonical clients emit lowercase"
+          },
+          "skillKey": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "skillVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "manifestDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "adapterDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "resourcePolicy": {
+            "const": "application.mcp.security-inspection.read"
+          },
+          "resourceAlias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "description": "Runtime rejects every .NET char.IsControl code point; exact originally consented alias, never a caller-selected expansion."
+          },
+          "scope": {
+            "type": "string",
+            "const": "security:read"
+          },
+          "operation": {
+            "const": "application.mcp.security.inspect"
+          },
+          "tool": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,64}$"
+          },
+          "integration": {
+            "const": "aegir.managed-http.v1"
+          },
+          "transportProfile": {
+            "const": "aegir-custom-http-jsonrpc"
+          },
+          "contractVersion": {
+            "const": "aegir.mcp.security-contract/v1"
+          }
+        },
+        "required": [
+          "action",
+          "operationId",
+          "skillKey",
+          "skillVersion",
+          "manifestDigest",
+          "adapterDigest",
+          "resourcePolicy",
+          "resourceAlias",
+          "scope",
+          "operation",
+          "tool",
+          "integration",
+          "transportProfile",
+          "contractVersion"
+        ]
+      },
+      "McpSecurityInspection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "aegir.skill.mcp-security-output/v1"
+          },
+          "resourceAlias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "description": "Exact already validated request and consent alias; runtime excludes char.IsControl."
+          },
+          "operation": {
+            "const": "application.mcp.security.inspect"
+          },
+          "decision": {
+            "enum": [
+              "Observed",
+              "Indeterminate",
+              "Unavailable"
+            ]
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9_]{1,64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contractVersion": {
+            "const": "aegir.mcp.security-contract/v1"
+          },
+          "contractDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "toolVersion": {
+            "anyOf": [
+              {
+                "const": "unversioned-tool-name"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "integration": {
+            "const": "aegir.managed-http.v1"
+          },
+          "transportProfile": {
+            "const": "aegir-custom-http-jsonrpc"
+          },
+          "contractAuthority": {
+            "const": "executing-auth-assembly"
+          },
+          "remoteHostAttested": {
+            "const": false
+          },
+          "stdioStatus": {
+            "enum": [
+              "delegated-stdio-unsupported",
+              "not-inspected-no-parity-claim"
+            ]
+          },
+          "callerCategory": {
+            "anyOf": [
+              {
+                "enum": [
+                  "current-agent",
+                  "current-developer-account",
+                  "current-developer-account-or-agent"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requiredScope": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delegation": {
+            "anyOf": [
+              {
+                "enum": [
+                  "exact-current-delegation-required",
+                  "not-a-delegated-operation"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currentServerAuthorizationRequired": {
+            "type": "boolean"
+          },
+          "executionPolicyStatus": {
+            "enum": [
+              "unavailable",
+              "target-and-current-policy-not-evaluated",
+              "unverified-contract-drift"
+            ]
+          },
+          "inputSchemaDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requiredInputs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            }
+          },
+          "outputSchemaDeclared": {
+            "type": "boolean"
+          },
+          "inputConstraints": {
+            "enum": [
+              "declared-schema-plus-partial-validator-and-dispatch",
+              "unavailable"
+            ]
+          },
+          "outputConstraints": {
+            "enum": [
+              "bounded-projection-not-full-json-schema-validation",
+              "unavailable"
+            ]
+          },
+          "maximumRequestBytes": {
+            "enum": [
+              0,
+              65536
+            ]
+          },
+          "maximumResponseBytes": {
+            "enum": [
+              0,
+              262144
+            ]
+          },
+          "cooperativeDeadlineMilliseconds": {
+            "enum": [
+              0,
+              30000
+            ]
+          },
+          "observedAt": {
+            "type": "integer"
+          },
+          "inspectionOnly": {
+            "const": true
+          },
+          "executionAuthorityGranted": {
+            "const": false
+          }
+        },
+        "required": [
+          "schema",
+          "resourceAlias",
+          "operation",
+          "decision",
+          "tool",
+          "contractVersion",
+          "contractDigest",
+          "toolVersion",
+          "integration",
+          "transportProfile",
+          "contractAuthority",
+          "remoteHostAttested",
+          "stdioStatus",
+          "callerCategory",
+          "requiredScope",
+          "delegation",
+          "currentServerAuthorizationRequired",
+          "executionPolicyStatus",
+          "inputSchemaDigest",
+          "requiredInputs",
+          "outputSchemaDeclared",
+          "inputConstraints",
+          "outputConstraints",
+          "maximumRequestBytes",
+          "maximumResponseBytes",
+          "cooperativeDeadlineMilliseconds",
+          "observedAt",
+          "inspectionOnly",
+          "executionAuthorityGranted"
+        ],
+        "description": "Current compiled entry-contract facts only; requiredScope is necessary, never sufficient to execute. No target operation, license, current tool transaction or external/stdio host is attested.",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "decision": {
+                  "const": "Unavailable"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "tool": {
+                  "const": null
+                },
+                "contractDigest": {
+                  "const": null
+                },
+                "toolVersion": {
+                  "const": null
+                },
+                "callerCategory": {
+                  "const": null
+                },
+                "requiredScope": {
+                  "const": null
+                },
+                "delegation": {
+                  "const": null
+                },
+                "inputSchemaDigest": {
+                  "const": null
+                },
+                "maximumRequestBytes": {
+                  "const": 0
+                },
+                "maximumResponseBytes": {
+                  "const": 0
+                },
+                "cooperativeDeadlineMilliseconds": {
+                  "const": 0
+                },
+                "requiredInputs": {
+                  "maxItems": 0
+                },
+                "outputSchemaDeclared": {
+                  "const": false
+                },
+                "currentServerAuthorizationRequired": {
+                  "const": false
+                },
+                "executionPolicyStatus": {
+                  "const": "unavailable"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "McpSecurityExecutionResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "ExecutedMcpSecurityInspection",
+              "AlreadyConsumed",
+              "CommittedRead",
+              "Unknown/recovery-required",
+              "Expired",
+              "Suspended",
+              "Revoked",
+              "UseLimitExhausted"
+            ]
+          },
+          "executionId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "grantId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isReplay": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/McpSecurityInspection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resultDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "response_prepared_client_receipt_unproven",
+              "client_receipt_unproven"
+            ]
+          }
+        },
+        "required": [
+          "outcome",
+          "executionId",
+          "grantId",
+          "isReplay",
+          "metadata",
+          "resultDigest",
+          "delivery"
+        ],
+        "description": "Only initial admitted execution returns metadata. Duplicate execute and explicit status preserve operation identity and nonsecret terminal truth without private redisclosure. Missing evidence is Unknown/recovery-required, never Abort."
+      },
+      "McpSecurityExecutionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "aegir.mcp-security-skill.execution/v1"
+          },
+          "result": {
+            "$ref": "#/components/schemas/McpSecurityExecutionResult"
+          }
+        },
+        "required": [
+          "schema",
+          "result"
+        ]
+      },
+      "McpSecuritySkillManifest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "type": "string",
+            "const": "aegir.skill-manifest/v1"
+          },
+          "skillId": {
+            "const": "aegir.mcp.security-contract-inspection"
+          },
+          "family": {
+            "const": "mcp-security"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[A-Za-z0-9.-]+)?$",
+            "maxLength": 64
+          },
+          "publisher": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "application": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "organization": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Inert reviewed description; runtime rejects char.IsControl. Never executable instructions or policy authority."
+          },
+          "adapter": {
+            "const": "foxlin.builtin.mcp-security-inspection.v1"
+          },
+          "adapterDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "resource": {
+            "const": "application.mcp.security-inspection.read"
+          },
+          "scopes": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "security:read"
+              }
+            ],
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "sideEffects": {
+            "type": "string",
+            "const": "none"
+          },
+          "inputSchema": {
+            "const": "aegir.skill.mcp-security-input/v1"
+          },
+          "outputSchema": {
+            "const": "aegir.skill.mcp-security-output/v1"
+          },
+          "maximumInputBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "maximumOutputBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "maximumMilliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5000
+          },
+          "humanAssurance": {
+            "type": "string",
+            "const": "totp.consent"
+          },
+          "approvalPolicy": {
+            "type": "string",
+            "const": "CurrentPlatformReviewAndApprovalThenScopedHumanEnablement"
+          },
+          "runtimeCompatibility": {
+            "const": "aegir.c5.builtin-mcp-security-inspection/v1"
+          },
+          "expiresAt": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 253402300799
+          }
+        },
+        "required": [
+          "schema",
+          "skillId",
+          "family",
+          "version",
+          "publisher",
+          "application",
+          "organization",
+          "description",
+          "adapter",
+          "adapterDigest",
+          "resource",
+          "scopes",
+          "sideEffects",
+          "inputSchema",
+          "outputSchema",
+          "maximumInputBytes",
+          "maximumOutputBytes",
+          "maximumMilliseconds",
+          "humanAssurance",
+          "approvalPolicy",
+          "runtimeCompatibility",
+          "expiresAt"
+        ],
+        "description": "Additive exact C3 profile for existing versioned registry contract; actual loaded Auth artifact requires separate current platform review/approval and scoped enablement. Delimiter IDs are unsupported; exact current namespace/permission proof required."
+      },
+      "Refusal": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      }
+    }
+  },
+  "x-aegir-c5-consent-pins": {
+    "requiredIntentFields": [
+      "skillInstallationId",
+      "inspectionTool",
+      "inspectionHost",
+      "inspectionTransport",
+      "inspectionVersion"
+    ],
+    "host": "aegir.managed-http.v1",
+    "transport": "aegir-custom-http-jsonrpc",
+    "version": "aegir.mcp.security-contract/v1",
+    "freshHumanConsent": true
+  },
+  "x-aegir-inspection-only": true,
+  "x-aegir-remote-host-attested": false,
+  "x-aegir-stdio-parity-claimed": false,
+  "x-aegir-production-release-authorized": false
+}

@@ -1,0 +1,29 @@
+# Retained client security boundary — Foxlin Industries
+
+This unreleased correction retains the existing public operations, package version and cryptographic behavior. HTTPS is required. Userinfo, query/fragment and ambiguous base paths reject. The owned transport validates TLS, never follows redirects, and bypasses proxy environment variables. A non-production SHA256 leaf pin is an explicit loopback-only option; its exact hash, hostname and current certificate validity are checked before credential bytes are sent. It never changes machine trust.
+
+Successful responses require the actual endpoint status (201 for transaction/agent creation, 200 otherwise), exact JSON media type, valid UTF-8, a 1MiB wire cap, maximum JSON depth32, at most4096 collection entries and16384 parsed values. Duplicate JSON keys, malformed/deep/oversized bodies, contradictory receipt permits, expired/invalid token responses and mismatched known request IDs reject. Compatible optional outer fields remain allowed. Error application/problem+json is accepted only for negative HTTP status. Receipt verification is performed by the current authenticated Aegir server; the portable client does not claim offline PQC verification or authorization from decoded JWT claims.
+
+Configure expected tenant, application and subject where the caller knows those bindings. Token/introspection fields and relevant application records must match those explicit expectations. Transaction, subject, provider, agent-grant subject and protected-message responses also match their requested identifiers. These checks narrow a canonical server response; local metadata never grants authority. Scoped human/application event authorization continues to use the separate D1 integration surface.
+
+The deprecated config-key constructor input is accepted for source compatibility but is never transmitted by these identity-bearing operations. An agent-key exchange omits any previously configured developer/bearer credential. Failed token exchange cannot replace the current token. Client and exception serialization/diagnostics omit or redact credentials and protected request data; successfully returned token or one-time agent-credential values are intentional API outputs and must be stored privately by the host.
+
+Error-body values and property names, correlation IDs and diagnostic error codes are filtered against full configured credentials and every nonempty colon-delimited component. A reflected secret half is sensitive even without its credential ID. Request data is additionally filtered as complete values; arbitrary scope strings are not split into credential components.
+
+Native calls have a bounded timeout, cancellation and permanent close/disposal. Closing disables future calls and late token adoption. Opaque host code is an explicit trust extension: a custom adapter must be opted into. It may observe credentials and execute host side effects. The SDK validates bounded returned data and prevents late credential adoption, but cannot certify TLS, redirect behavior or original duplicate keys already discarded by a parsed adapter, nor undo side effects performed by arbitrary host code. Treat that adapter as security-sensitive application code.
+
+The same request deadline and cancellation signal cover asynchronous diagnostic promises and transport work. Logging errors remain best effort and sanitized. Timeout, cancel or close interrupts a pending diagnostic wait before later HTTP or credential adoption. Arbitrary synchronous JavaScript host callbacks can block the event loop itself; no promise timeout can preempt such code. Keep host callbacks short and nonblocking.
+
+## Intentional compatibility corrections
+
+Unsafe HTTP/ambiguous URLs, unmarked custom adapters, successful raw text and incomplete/contradictory authority responses no longer succeed. Old method signatures and return shapes for genuine valid contracts remain. Existing tests now assert refusal for unsafe raw text/config-key transmission and use complete token/transaction/envelope fixtures with the real HTTP status; original R004 digest, retired-signing and rejection assertions remain unchanged. No release/publication is performed.
+
+## JavaScript / TypeScript options
+
+Use `new AegirSecurityClient({baseUrl: "https://aegir.example/apis", developerKey: privateKey, timeoutMs: 10000, expectedTenantId: tenantId})`. Add `signal` for an AbortSignal; call `cancelPending()` or `close()`. `certificateSha256` is only for explicit loopback testing. A caller-supplied `fetcher` requires `allowTrustedCustomTransport: true`. Both ESM and CommonJS exports and declarations are tested. Do not put real credentials in source.
+
+Identity graph/action/exposure C# enums use exact 1-based numeric JSON values. The client maps only known values to retained named public enums and serializes a named performAction input as the exact numeric wire value. Unknown values and booleans reject; cryptographic envelope/header bytes are never normalized.
+
+The canonical graph API takes a raw developer account ID or user ID. Its graph/exposure identifier is respectively `graph:developer:<rawId>` or `graph:user:<rawId>`; each must match the exact requested ID. Retained `graph:<subject>` fixtures remain compatible. A scan's graph and exposure must identify the same graph. Exposure responses carry `graphId`, not an invented `subjectId` field.
+
+`node examples/legacy-security-scenario.mjs PRIVATE_CONFIG.json` exercises seven genuine client operations against an already approved synthetic local Aegir installation: scan, graph, graph JSON, exposure, RequestClarity, reversal and history. The private JSON file supplies `apiBaseUrl`, `developerKey`, `subjectId`, optional `certificateSha256` and `timeoutMs`. Only `{op,ok}` is printed. Keep that file outside source control; the example creates and reverses a real synthetic action.

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegir.foxlin/contracts/authorization-events/v1",
+  "title": "Aegir Authorization Event Protocol v1",
+  "description": "Foxlin Industries. Exact seven-field current server envelope. Notification only; unknown future event/version cannot authorize. application-scoped aliases; userId may be null for group-wide policy events.",
+  "type": "object",
+  "properties": {
+    "protocolVersion": {
+      "const": 1
+    },
+    "transactionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eventId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "groupId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "userId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "granted",
+        "revoked",
+        "adminGranted",
+        "adminRevoked",
+        "permissionChanged",
+        "licenseGranted",
+        "licenseRevoked",
+        "membershipChanged",
+        "suspended",
+        "restored",
+        "groupPolicyChanged"
+      ]
+    },
+    "groupVersion": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "required": [
+    "protocolVersion",
+    "transactionId",
+    "eventId",
+    "groupId",
+    "userId",
+    "eventType",
+    "groupVersion"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,5 @@
+prune tests
+include INTEGRATION.md
+recursive-include examples *.py
+
+include LEGACY-SECURITY.md

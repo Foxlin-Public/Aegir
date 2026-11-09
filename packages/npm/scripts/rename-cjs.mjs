@@ -1,28 +1,25 @@
-import { readdir, rename } from "node:fs/promises";
-import { dirname, extname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { copyFileSync, existsSync, renameSync, readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 
-const scriptDirectory = dirname(fileURLToPath(import.meta.url));
-const packageRoot = resolve(scriptDirectory, "..");
-const cjsRoot = resolve(packageRoot, "dist", "cjs");
+const jsPath = resolve(process.cwd(), "dist", "cjs", "index.js");
+const cjsPath = resolve(process.cwd(), "dist", "cjs", "index.cjs");
 
-await renameCompiledFiles(cjsRoot);
-
-async function renameCompiledFiles(directory) {
-  const entries = await readdir(directory, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const fullPath = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      await renameCompiledFiles(fullPath);
-      continue;
-    }
-
-    if (extname(entry.name) !== ".js") {
-      continue;
-    }
-
-    const targetPath = fullPath.replace(/\.js$/i, ".cjs");
-    await rename(fullPath, targetPath);
-  }
+if (existsSync(jsPath)) {
+  writeFileSync(jsPath, readFileSync(jsPath, "utf8").replaceAll('require("./integration.js")', 'require("./integration.cjs")').replaceAll('require("./legacy.js")', 'require("./legacy.cjs")'));
+  renameSync(jsPath, cjsPath);
 }
+
+const integrationJs = resolve(process.cwd(), "dist", "cjs", "integration.js");
+if (existsSync(integrationJs)) renameSync(integrationJs, resolve(process.cwd(), "dist", "cjs", "integration.cjs"));
+
+// Node16 TypeScript consumers distinguish CommonJS declarations by their .d.cts extension.
+const declarationPath = resolve(process.cwd(), "dist", "types", "index.d.ts");
+copyFileSync(declarationPath, resolve(process.cwd(), "dist", "types", "index.d.cts"));
+const commonTypes = resolve(process.cwd(), "dist", "types", "index.d.cts");
+writeFileSync(commonTypes, readFileSync(commonTypes, "utf8").replaceAll('"./integration.js"', '"./integration.cjs"'));
+copyFileSync(resolve(process.cwd(), "dist", "types", "integration.d.ts"), resolve(process.cwd(), "dist", "types", "integration.d.cts"));
+
+const legacyJs = resolve(process.cwd(), "dist", "cjs", "legacy.js");
+if (existsSync(legacyJs)) renameSync(legacyJs, resolve(process.cwd(), "dist", "cjs", "legacy.cjs"));
+writeFileSync(commonTypes, readFileSync(commonTypes, "utf8").replaceAll('"./legacy.js"', '"./legacy.cjs"'));
+copyFileSync(resolve(process.cwd(), "dist", "types", "legacy.d.ts"), resolve(process.cwd(), "dist", "types", "legacy.d.cts"));

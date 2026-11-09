@@ -1,0 +1,23 @@
+{
+  "owner": "Foxlin Industries",
+  "scope": "E2-C4 current canonical authorization observation; source implementation under qualification",
+  "routes": [
+    {
+      "host": "api",
+      "method": "POST",
+      "path": "/v1/skills/v2/authorization-inspection",
+      "contractPath": "/v1/skills/v2/authorization-inspection",
+      "operationId": "api_post_v1_skills_v2_authorization_inspection",
+      "source": "Aegir/src/Foxlin.Aegir.Auth/Services/RbacSkillEndpoints.cs",
+      "classification": "restricted-c4-installed-authorization-inspection",
+      "schemaCoverage": "complete-supported-request-and-response",
+      "generalDeveloperApi": false
+    }
+  ],
+  "httpMcpRegistry": 14,
+  "stdioRegistry": 12,
+  "newMcpTool": false,
+  "newTypedDotnetSourceClient": "AegirAuthorizationSkillApiClient",
+  "otherTypedLanguages": false,
+  "publicationAuthorized": false
+}

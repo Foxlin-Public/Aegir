@@ -1,0 +1,56 @@
+{
+  "owner": "Foxlin Industries",
+  "scope": "E2-C1 additive reviewed Skills metadata source",
+  "routes": [
+    {
+      "host": "api",
+      "method": "POST",
+      "path": "/v1/delegations/v3/root-t1",
+      "contractPath": "/v1/delegations/v3/root-t1",
+      "source": "Aegir/src/Foxlin.Aegir.Auth/Services/ChainDelegationEndpoints.cs",
+      "classification": "restricted-c1-skills-source",
+      "schemaCoverage": "complete-supported-request-and-response",
+      "generalDeveloperApi": false
+    },
+    {
+      "host": "api",
+      "method": "POST",
+      "path": "/v1/delegations/v3/child",
+      "contractPath": "/v1/delegations/v3/child",
+      "source": "Aegir/src/Foxlin.Aegir.Auth/Services/ChainDelegationEndpoints.cs",
+      "classification": "restricted-c1-skills-source",
+      "schemaCoverage": "complete-supported-request-and-response",
+      "generalDeveloperApi": false
+    },
+    {
+      "host": "api",
+      "method": "POST",
+      "path": "/v1/skills/v1/registry",
+      "contractPath": "/v1/skills/v1/registry",
+      "source": "Aegir/src/Foxlin.Aegir.Auth/Services/SkillEndpoints.cs",
+      "classification": "restricted-c1-skills-source",
+      "schemaCoverage": "complete-supported-request-and-response",
+      "generalDeveloperApi": false
+    },
+    {
+      "host": "api",
+      "method": "POST",
+      "path": "/v1/skills/v1/executions",
+      "contractPath": "/v1/skills/v1/executions",
+      "source": "Aegir/src/Foxlin.Aegir.Auth/Services/SkillEndpoints.cs",
+      "classification": "restricted-c1-skills-source",
+      "schemaCoverage": "complete-supported-request-and-response",
+      "generalDeveloperApi": false
+    }
+  ],
+  "newRoutes": 4,
+  "newOperations": 4,
+  "newReachableSchemas": 13,
+  "combinedCurrentRoutes": 163,
+  "combinedCurrentModeledOperations": 107,
+  "combinedCurrentSchemas": 179,
+  "stdioToolRegistryUnchanged": 12,
+  "runtimeHttpToolsBeforeFiltering": 14,
+  "sdkDistribution": "unreleased source only",
+  "productionReleaseAuthorized": false
+}

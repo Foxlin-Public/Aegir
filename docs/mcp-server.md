@@ -104,3 +104,10 @@ In Beta-1, plan for:
 - invalid tool name or malformed JSON-RPC request body
 
 Do not log raw credentials or forward secrets in error output.
+
+## RC1 receipt-verification boundary — AEG-RC1-R004
+
+The existing `verify_transaction_receipt` tool forwards the receipt unchanged to the hosted
+API and returns the server result. It does not use retired portable verification, a local
+digest, or MCP input claims as identity authority. No tools or scopes are added by the
+[cryptographic compatibility repair](cryptographic-contracts-rc1.md).

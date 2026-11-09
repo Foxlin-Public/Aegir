@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import * as portable from "../dist/esm/index.js";
+const cryptoVectors = JSON.parse(readFileSync(new URL("./crypto-vectors.json", import.meta.url), "utf8"));
 
 import {
   AegirSecurityClient,
@@ -22,18 +25,18 @@ async function test(name, run) {
   }
 }
 
-await test("scanIdentity sends config and developer key headers", async () => {
+await test("scanIdentity omits deprecated config input and sends developer key header", async () => {
   let capturedUrl = null;
   let capturedHeaders = null;
 
   const client = new AegirSecurityClient({
-    baseUrl: "https://example.test/apis",
+    baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true,
     configKey: "cfg_123",
     developerKey: "dev_456",
     fetcher: async (url, init) => {
       capturedUrl = url;
       capturedHeaders = new Headers(init?.headers);
-      return new Response(JSON.stringify({ ok: true }), {
+      return new Response(JSON.stringify({ subjectId: "developer:dev_123", graph: {graphId:"graph:developer:dev_123",scores:{exposureScore:0,trustScore:1,connectionClarityScore:1},nodes:[],edges:[]}, exposure: {graphId:"graph:developer:dev_123",findings:[]} }), {
         status: 200,
         headers: { "Content-Type": "application/json" }
       });
@@ -44,7 +47,7 @@ await test("scanIdentity sends config and developer key headers", async () => {
 
   assert.equal(capturedUrl, "https://example.test/apis/v1/security/scan/developer%3Adev_123");
   assert.equal(capturedHeaders.get("Accept"), "application/json");
-  assert.equal(capturedHeaders.get("X-Aegir-Config-Key"), "cfg_123");
+  assert.equal(capturedHeaders.get("X-Aegir-Config-Key"), null);
   assert.equal(capturedHeaders.get("X-Aegir-Developer-Key"), "dev_456");
 });
 
@@ -54,12 +57,12 @@ await test("performAction posts JSON payload", async () => {
   let capturedContentType = null;
 
   const client = new AegirSecurityClient({
-    baseUrl: "https://example.test/apis",
+    baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true,
     fetcher: async (_url, init) => {
       capturedMethod = init?.method ?? "GET";
       capturedBody = init?.body;
       capturedContentType = new Headers(init?.headers).get("Content-Type");
-      return new Response(JSON.stringify({ actionId: "action_123" }), {
+      return new Response(JSON.stringify({ actionId: "action_123", subjectId: "developer:dev_123",actionType:1,status:1 }), {
         status: 200,
         headers: { "Content-Type": "application/json" }
       });
@@ -76,7 +79,7 @@ await test("performAction posts JSON payload", async () => {
   assert.equal(capturedContentType, "application/json");
   assert.equal(capturedBody, JSON.stringify({
     subjectId: "developer:dev_123",
-    actionType: "LockIdentity",
+    actionType: 1,
     reason: "Manual review"
   }));
 });
@@ -85,10 +88,10 @@ await test("reverseAction appends encoded reason", async () => {
   let capturedUrl = null;
 
   const client = new AegirSecurityClient({
-    baseUrl: "https://example.test/apis",
+    baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true,
     fetcher: async (url) => {
       capturedUrl = url;
-      return new Response(JSON.stringify({ actionId: "action_123" }), {
+      return new Response(JSON.stringify({ actionId: "action_123", subjectId: "developer:dev_123",actionType:1,status:1 }), {
         status: 200,
         headers: { "Content-Type": "application/json" }
       });
@@ -105,7 +108,7 @@ await test("reverseAction appends encoded reason", async () => {
 
 await test("request throws AegirSecurityError for non-200 JSON response", async () => {
   const client = new AegirSecurityClient({
-    baseUrl: "https://example.test/apis",
+    baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true,
     fetcher: async () => new Response(JSON.stringify({ error: "forbidden" }), {
       status: 403,
       headers: { "Content-Type": "application/json", "X-Correlation-Id": "corr_123" }
@@ -131,7 +134,7 @@ await test("diagnostics hooks receive log metric and trace events", async () => 
   const traces = [];
 
   const client = new AegirSecurityClient({
-    baseUrl: "https://example.test/apis",
+    baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true,
     diagnosticsHooks: {
       log: (entry) => logs.push(entry),
       metric: (event) => metrics.push(event),
@@ -151,18 +154,10 @@ await test("diagnostics hooks receive log metric and trace events", async () => 
   assert.equal(traces.at(-1).correlationId, "corr_diag");
 });
 
-await test("request returns raw text body when response is not JSON", async () => {
-  const client = new AegirSecurityClient({
-    baseUrl: "https://example.test/apis",
-    fetcher: async () => new Response("plain-text-response", {
-      status: 200,
-      headers: { "Content-Type": "text/plain" }
-    })
-  });
-
-  const result = await client.getIdentityGraphJson("developer:dev_123");
-
-  assert.equal(result, "\"plain-text-response\"");
+await test("request rejects a successful raw text response as invalid authority data", async () => {
+  const client = new AegirSecurityClient({ baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true,
+    fetcher: async () => new Response("plain-text-response", {status:200,headers:{"Content-Type":"text/plain"}}) });
+  await assert.rejects(() => client.getIdentityGraphJson("developer:dev_123"), AegirSecurityError);
 });
 
 await test("safe envelope detects tampering", async () => {
@@ -277,14 +272,44 @@ await test("public model objects preserve beta1 JSON wire shape", async () => {
   assert.ok(json.includes("\"status\":\"Completed\""));
 });
 
-await test("identity-token signature verifies and fails on tampering", async () => {
-  const payload = new TextEncoder().encode("{\"userId\":\"user-1\",\"trustLevel\":4}");
-  const signature = signIdentityTokenPayload(payload);
-  assert.equal(signature.length, 64);
-  assert.equal(verifyIdentityTokenPayload(payload, signature), true);
+await test("R004 SHA256 shared vectors are integrity only", async () => {
+  for (const vector of cryptoVectors.sha256) {
+    assert.equal(portable.computePayloadDigest(Buffer.from(vector.hex, "hex")), vector.digest);
+  }
+  assert.notEqual(portable.computePayloadDigest(Buffer.from('{"a":1,"b":2}')), portable.computePayloadDigest(Buffer.from('{"b":2,"a":1}')));
+});
 
-  const tampered = new TextEncoder().encode("{\"userId\":\"user-2\",\"trustLevel\":4}");
-  assert.equal(verifyIdentityTokenPayload(tampered, signature), false);
+await test("R004 every legacy signer throws and verifier rejects historical or malformed artifacts", async () => {
+  const payload = Buffer.from(cryptoVectors.historicalKeyless.payloadHex, "hex");
+  for (const [kind, key] of [["Challenge", "challenge"], ["ProofReceipt", "proofReceipt"], ["IdentityToken", "identityToken"]]) {
+    assert.throws(() => portable[`sign${kind}Payload`](payload), /unsupported/);
+    const legacy = Buffer.from(cryptoVectors.historicalKeyless[key], "hex");
+    for (const artifact of [legacy, Buffer.alloc(0), Buffer.alloc(64), Buffer.concat([legacy, Buffer.from([1])]), null, undefined]) {
+      assert.equal(portable[`verify${kind}Payload`](payload, artifact), false);
+    }
+  }
+});
+
+await test("R004 portable envelope rejects all signature authority and labels unsigned integrity", async () => {
+  const unsigned = createSafeEnvelope("test", "abc");
+  assert.deepEqual(validateSafeEnvelope(unsigned), { isValid: true, isAuthenticated: false, reason: "integrity_only" });
+  for (const algorithmId of ["ML-DSA-65", "hybrid-beta1", "", "invalid"]) {
+    for (const keyId of ["unknown", "substituted-device", ""]) {
+      for (const signatureBytes of [Buffer.alloc(0), Buffer.from(cryptoVectors.historicalKeyless.challenge, "hex"), Buffer.alloc(3309)]) {
+        const signed = createSafeEnvelope("test", "abc", { keyId, algorithm: {algorithmId, hybrid: true}, signatureBytes });
+        assert.deepEqual(validateSafeEnvelope(signed), { isValid: false, isAuthenticated: false, reason: "unsupported_signature" });
+      }
+    }
+  }
+});
+
+await test("R004 in-process queue rejects fabricated signed message", async () => {
+  const queue = new InMemoryAgentToAgentProtocol();
+  const message = queue.send("agent:sender", "agent:recipient", "test", "abc", null,
+    { keyId: "unknown", algorithm: {algorithmId:"ML-DSA-65", hybrid:false}, signatureBytes:Buffer.alloc(3309) });
+  const result = queue.receive("agent:recipient", message.messageId);
+  assert.equal(result.accepted, false);
+  assert.equal(result.reason, "unsupported_signature");
 });
 
 await test("getToken exchanges the developer key for an access token", async () => {
@@ -292,7 +317,7 @@ await test("getToken exchanges the developer key for an access token", async () 
   let capturedBody = null;
 
   const client = new AegirSecurityClient({
-    baseUrl: "https://example.test/apis",
+    baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true,
     configKey: "cfg_123",
     developerKey: "dev_456",
     fetcher: async (url, init) => {
@@ -303,7 +328,7 @@ await test("getToken exchanges the developer key for an access token", async () 
           access_token: "header.payload.signature",
           token_type: "Bearer",
           expires_in: 1800,
-          expires_at: "2026-08-05T12:30:00Z",
+          expires_at: "2099-08-05T12:30:00Z",
           scope: "security:read",
           scopes: ["security:read"],
           tenant_id: "tenant_dev_456",
@@ -325,7 +350,7 @@ await test("getToken exchanges the developer key for an access token", async () 
 
 await test("introspectToken reports an unusable token as inactive", async () => {
   const client = new AegirSecurityClient({
-    baseUrl: "https://example.test/apis",
+    baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true,
     developerKey: "dev_456",
     fetcher: async () =>
       new Response(JSON.stringify({ active: false }), {
@@ -345,7 +370,7 @@ await test("revokeToken posts the token and reason", async () => {
   let capturedBody = null;
 
   const client = new AegirSecurityClient({
-    baseUrl: "https://example.test/apis",
+    baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true,
     developerKey: "dev_456",
     fetcher: async (url, init) => {
       capturedUrl = url;
@@ -377,7 +402,8 @@ function recordingFetcher(status = 200, payload = {}) {
     captured.method = init?.method ?? "GET";
     captured.headers = new Headers(init?.headers);
     captured.body = init?.body ? JSON.parse(init.body) : null;
-    return new Response(JSON.stringify(payload), {
+    const actual = url.includes("/transactions/") && payload.access_token ? transactionFixture() : payload;
+    return new Response(JSON.stringify(actual), {
       status,
       headers: { "Content-Type": "application/json" }
     });
@@ -387,8 +413,8 @@ function recordingFetcher(status = 200, payload = {}) {
 }
 
 await test("createTransaction posts the declared action", async () => {
-  const { fetcher, captured } = recordingFetcher(200, { transactionId: "AGTX-0011", status: "Created" });
-  const client = new AegirSecurityClient({ baseUrl: "https://example.test/apis", fetcher });
+  const { fetcher, captured } = recordingFetcher(201, transactionFixture());
+  const client = new AegirSecurityClient({ baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true, fetcher });
 
   const transaction = await client.createTransaction({
     declaredAction: "ai.provider.invoke",
@@ -404,12 +430,12 @@ await test("createTransaction posts the declared action", async () => {
 await test("useAgentKey presents the agent key then switches to the bearer token", async () => {
   const { fetcher, captured } = recordingFetcher(200, {
     access_token: "agent.token.value",
-    token_type: "Bearer",
+    token_type: "Bearer", expires_in:1800, expires_at:"2099-01-01T00:00:00Z", scope:"", tenant_id:"tenant_test", subject:"agt_1",
     scopes: []
   });
 
   const client = new AegirSecurityClient({
-    baseUrl: "https://example.test/apis",
+    baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true,
     developerKey: "dev_1:secret",
     fetcher
   });
@@ -420,7 +446,7 @@ await test("useAgentKey presents the agent key then switches to the bearer token
   assert.equal(captured.body.grantType, "agent_key");
 
   // From here the agent token is the credential. The developer key must not keep travelling
-  // alongside it — a request carrying both would authenticate as the wrong principal, and the
+  // alongside it â€” a request carrying both would authenticate as the wrong principal, and the
   // agent's narrower scopes would be silently bypassed.
   await client.getTransaction("AGTX-0011");
   assert.equal(captured.headers.get("Authorization"), "Bearer agent.token.value");
@@ -430,10 +456,10 @@ await test("useAgentKey presents the agent key then switches to the bearer token
 await test("sendAgentMessage posts the transaction, recipient, action and payload", async () => {
   const { fetcher, captured } = recordingFetcher(200, {
     transactionId: "AGTX-0011",
-    envelope: { envelopeId: "env_1" }
+    envelope: { envelopeId: "env_1", header:{transactionId:"AGTX-0011",recipientPrincipalId:"agt_beta",action:"agent.finding.share"},kemCiphertext:"AA==",aeadNonce:"AA==",ciphertext:"AA==",tag:"AA==",signature:"AA==" }
   });
 
-  const client = new AegirSecurityClient({ baseUrl: "https://example.test/apis", fetcher });
+  const client = new AegirSecurityClient({ baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true, fetcher });
 
   await client.sendAgentMessage({
     transactionId: "AGTX-0011",
@@ -461,7 +487,7 @@ await test("bindProvider never returns the credential it sent", async () => {
     revokedAtUtc: null
   });
 
-  const client = new AegirSecurityClient({ baseUrl: "https://example.test/apis", fetcher });
+  const client = new AegirSecurityClient({ baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true, fetcher });
 
   const binding = await client.bindProvider("agt_1", {
     providerId: "openai",
@@ -493,7 +519,7 @@ await test("invokeProvider reports a vendor failure as data, not an exception", 
     errorRetryable: true
   });
 
-  const client = new AegirSecurityClient({ baseUrl: "https://example.test/apis", fetcher });
+  const client = new AegirSecurityClient({ baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true, fetcher });
 
   const result = await client.invokeProvider({
     transactionId: "AGTX-0011",
@@ -511,7 +537,7 @@ await test("invokeProvider reports a vendor failure as data, not an exception", 
 
 await test("a specific server error code survives to the caller", async () => {
   const { fetcher } = recordingFetcher(403, { error: "envelope_rejected", status: "Replayed" });
-  const client = new AegirSecurityClient({ baseUrl: "https://example.test/apis", fetcher });
+  const client = new AegirSecurityClient({ baseUrl: "https://example.test/apis", allowTrustedCustomTransport: true, fetcher });
 
   await assert.rejects(
     () => client.receiveAgentMessage({ transactionId: "AGTX-0011", envelope: {} }),
@@ -523,3 +549,5 @@ await test("a specific server error code survives to the caller", async () => {
     }
   );
 });
+
+function transactionFixture(){return {transactionId:"AGTX-0011",tenantId:"tenant_test",callerPrincipalType:"Agent",callerPrincipalId:"agt_1",declaredAction:"ai.provider.invoke",authorizationDecision:"Pending",status:"Created"};}

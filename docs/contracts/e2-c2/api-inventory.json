@@ -1,0 +1,44 @@
+{
+  "owner": "Foxlin Industries",
+  "scope": "E2-C2 scoped logical installation and explicit installed grants",
+  "routes": [
+    {
+      "host": "api",
+      "method": "POST",
+      "path": "/v1/delegations/v4/root-t1",
+      "contractPath": "/v1/delegations/v4/root-t1",
+      "source": "Aegir/src/Foxlin.Aegir.Auth/Services/ChainDelegationEndpoints.cs",
+      "classification": "restricted-c2-installed-skills-source",
+      "schemaCoverage": "complete-supported-request-and-response",
+      "generalDeveloperApi": false
+    },
+    {
+      "host": "api",
+      "method": "POST",
+      "path": "/v1/delegations/v4/child",
+      "contractPath": "/v1/delegations/v4/child",
+      "source": "Aegir/src/Foxlin.Aegir.Auth/Services/ChainDelegationEndpoints.cs",
+      "classification": "restricted-c2-installed-skills-source",
+      "schemaCoverage": "complete-supported-request-and-response",
+      "generalDeveloperApi": false
+    },
+    {
+      "host": "api",
+      "method": "POST",
+      "path": "/v1/skills/v2/installations",
+      "contractPath": "/v1/skills/v2/installations",
+      "source": "Aegir/src/Foxlin.Aegir.Auth/Services/SkillInstallationEndpoints.cs",
+      "classification": "restricted-c2-installed-skills-source",
+      "schemaCoverage": "complete-supported-request-and-response",
+      "generalDeveloperApi": false
+    }
+  ],
+  "newRoutes": 3,
+  "newOperations": 3,
+  "newReachableSchemas": 10,
+  "combinedCurrentRoutes": 166,
+  "combinedCurrentModeledOperations": 110,
+  "combinedCurrentReachableSchemas": 189,
+  "originalC1ContractsUnchanged": true,
+  "sourceOnly": true
+}

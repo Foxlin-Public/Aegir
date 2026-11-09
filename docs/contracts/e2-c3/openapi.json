@@ -1,0 +1,418 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Foxlin Industries Aegir C3 authentication configuration inspection source supplement",
+    "version": "c3-source-v1",
+    "description": "Only current executing-API-host, exact selected application/group configuration prerequisites. No Human authentication or deployment certification."
+  },
+  "paths": {
+    "/v1/skills/v2/authentication-integration": {
+      "post": {
+        "operationId": "api_post_v1_skills_v2_authentication_integration",
+        "summary": "Inspect exact currently authorized application authentication configuration prerequisites",
+        "x-aegir-host": "api",
+        "x-aegir-authorization": "Current Agent + exact ags2 installed chain; original current Human and administrative source; canonical application access + exact selected-group read + license + policy + approval + enabled installation",
+        "x-aegir-idempotency": "durable exact operationId; duplicate no second private result; changed intent conflicts; explicit status only protected nonsecret truth",
+        "x-aegir-limits": "strict10fields,4096request,16384response,16configurationentries,finite reserved quotas,no-refund,no-pruning",
+        "security": [
+          {
+            "AgentKey": [],
+            "InstalledDelegation": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthenticationExecutionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Observation or nonsecret durable reconciliation; never authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationExecutionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid strict supported operation contract"
+          },
+          "403": {
+            "description": "Current authority or profile refused"
+          },
+          "409": {
+            "description": "Immutable operation/revision conflict"
+          },
+          "503": {
+            "description": "Unverifiable current authority; reconcile original operation, never infer Abort"
+          },
+          "429": {
+            "description": "Bounded retained history or use capacity refusal; no eviction or inferred Abort"
+          }
+        },
+        "x-aegir-configuration-namespace": "ASCII bounded application ID without colon; current retained registered-ID OrdinalIgnoreCase proof within4096 equal-codepoint-length candidates; only plain numeric callback-array children; ambiguous names/nested shapes refuse without counts. Existing authority triggers fence registration; no added tablelock. Materialization bound is not scan-time/scalability qualification.",
+        "x-aegir-organization-context": "Exact original organization, selected group and mapped application under the supported one-organization-per-application boundary; current canonical source and effective read authority required.",
+        "x-aegir-identity-type": "Current authenticated Agent with exact installed ags2_ root/child delegation; original current Human consent, every ancestor, approval and installation pins required. Developer credentials do not establish Human presence.",
+        "x-aegir-license": "Current organization/application license for the original Human issuer is required on every fresh protected inspection; membership or installation alone is insufficient."
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AgentKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Agent-Key"
+      },
+      "InstalledDelegation": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Delegation"
+      }
+    },
+    "schemas": {
+      "AuthenticationExecutionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "execute",
+              "status"
+            ]
+          },
+          "operationId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "skillKey": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "skillVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "manifestDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "adapterDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "resourcePolicy": {
+            "type": "string",
+            "const": "application.authentication.integration.read"
+          },
+          "resourceAlias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "scope": {
+            "type": "string",
+            "const": "security:read"
+          },
+          "operation": {
+            "type": "string",
+            "const": "application.authentication.integration.inspect"
+          }
+        },
+        "required": [
+          "action",
+          "operationId",
+          "skillKey",
+          "skillVersion",
+          "manifestDigest",
+          "adapterDigest",
+          "resourcePolicy",
+          "resourceAlias",
+          "scope",
+          "operation"
+        ]
+      },
+      "AuthenticationInspection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "type": "string",
+            "const": "aegir.skill.authentication-inspection-output/v1"
+          },
+          "resourceAlias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "operation": {
+            "type": "string",
+            "const": "application.authentication.integration.inspect"
+          },
+          "configurationAuthority": {
+            "type": "string",
+            "const": "executing-api-host"
+          },
+          "returnUriConfiguration": {
+            "type": "string",
+            "enum": [
+              "missing",
+              "configured",
+              "contains-invalid-entries",
+              "inspection-limit-exceeded"
+            ]
+          },
+          "inspectedEntryCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 16
+          },
+          "usableAllowedReturnUriCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 16
+          },
+          "ceremonyExecuted": {
+            "const": false
+          },
+          "authenticationEstablished": {
+            "const": false
+          }
+        },
+        "required": [
+          "schema",
+          "resourceAlias",
+          "operation",
+          "configurationAuthority",
+          "returnUriConfiguration",
+          "inspectedEntryCount",
+          "usableAllowedReturnUriCount",
+          "ceremonyExecuted",
+          "authenticationEstablished"
+        ]
+      },
+      "AuthenticationExecutionResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string"
+          },
+          "executionId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "grantId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isReplay": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthenticationInspection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resultDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "response_prepared_client_receipt_unproven",
+              "client_receipt_unproven"
+            ]
+          }
+        },
+        "required": [
+          "outcome",
+          "executionId",
+          "grantId",
+          "isReplay",
+          "metadata",
+          "resultDigest",
+          "delivery"
+        ]
+      },
+      "AuthenticationExecutionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "type": "string",
+            "const": "aegir.authentication-skill.execution/v1"
+          },
+          "result": {
+            "$ref": "#/components/schemas/AuthenticationExecutionResult"
+          }
+        },
+        "required": [
+          "schema",
+          "result"
+        ]
+      },
+      "AuthenticationSkillManifest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "type": "string",
+            "const": "aegir.skill-manifest/v1"
+          },
+          "skillId": {
+            "type": "string",
+            "const": "aegir.authentication.integration-inspection"
+          },
+          "family": {
+            "type": "string",
+            "const": "authentication"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[A-Za-z0-9.-]+)?$",
+            "maxLength": 64
+          },
+          "publisher": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "application": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]{1,128}$"
+          },
+          "organization": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "adapter": {
+            "type": "string",
+            "const": "foxlin.builtin.authentication-integration.v1"
+          },
+          "adapterDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "resource": {
+            "type": "string",
+            "const": "application.authentication.integration.read"
+          },
+          "scopes": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "security:read"
+              }
+            ],
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "sideEffects": {
+            "type": "string",
+            "const": "none"
+          },
+          "inputSchema": {
+            "type": "string",
+            "const": "aegir.skill.authentication-inspection-input/v1"
+          },
+          "outputSchema": {
+            "type": "string",
+            "const": "aegir.skill.authentication-inspection-output/v1"
+          },
+          "maximumInputBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "maximumOutputBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "maximumMilliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5000
+          },
+          "humanAssurance": {
+            "type": "string",
+            "const": "totp.consent"
+          },
+          "approvalPolicy": {
+            "type": "string",
+            "const": "CurrentPlatformReviewAndApprovalThenScopedHumanEnablement"
+          },
+          "runtimeCompatibility": {
+            "type": "string",
+            "const": "aegir.c3.builtin-authentication-inspection/v1"
+          },
+          "expiresAt": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 253402300799
+          }
+        },
+        "required": [
+          "schema",
+          "skillId",
+          "family",
+          "version",
+          "publisher",
+          "application",
+          "organization",
+          "description",
+          "adapter",
+          "adapterDigest",
+          "resource",
+          "scopes",
+          "sideEffects",
+          "inputSchema",
+          "outputSchema",
+          "maximumInputBytes",
+          "maximumOutputBytes",
+          "maximumMilliseconds",
+          "humanAssurance",
+          "approvalPolicy",
+          "runtimeCompatibility",
+          "expiresAt"
+        ],
+        "description": "Additive exact C3 profile for existing versioned registry contract; actual loaded Auth artifact requires separate current platform review/approval and scoped enablement. Delimiter IDs are unsupported; exact current namespace/permission proof required."
+      }
+    }
+  }
+}

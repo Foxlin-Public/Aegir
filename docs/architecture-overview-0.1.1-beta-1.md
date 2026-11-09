@@ -12,7 +12,7 @@ flowchart LR
   Runtime --> Security
   Security --> Core["Core contracts"]
   Security --> Identity["Identity graph and actions"]
-  Security --> Crypto["Portable crypto"]
+  Security --> Crypto["Integrity utilities"]
   Security --> Validation["Validation and error mapping"]
   Security --> Serialization["Serialization"]
   Security --> Budget["Budget controls"]
@@ -40,25 +40,13 @@ no security-bearing cryptography of its own.
 - Device handoff proof: **ML-DSA-65** against an enrolled device public key.
 - Access tokens: HS256 JWT.
 
-### Portable helpers (deprecated)
+### Local integrity and retired helpers
 
-The SDKs also expose deterministic portable helpers, retained for cross-language parity tests and
-local fixtures:
-
-- `signChallengePayload` / `verifyChallengePayload`
-- `signProofReceiptPayload` / `verifyProofReceiptPayload`
-- `signIdentityTokenPayload` / `verifyIdentityTokenPayload`
-- `TrustCoreAlgorithmDescriptor`
-- `TrustCoreSignatureEnvelope`
-
-> **These helpers are not Aegir's cryptography.** They are a deterministic, **keyless**
-> digest: anyone who knows the algorithm - and it is published here, in five languages - can
-> produce a matching value. They therefore prove nothing about possession of a key, and they must
-> not be used to authenticate anything or to establish integrity against an adversary.
->
-> They exist for cross-language parity tests and local development fixtures, and are kept in
-> Beta-1 only so existing callers keep compiling. Treat them as deprecated.
-
+The portable custom digest implementation has been removed under AEG-RC1-R004. Deprecated
+`sign*Payload` names always throw (Go panics), and `verify*Payload` always rejects. SHA-256
+`computePayloadDigest` is an integrity utility. Local envelope validation labels matching
+unsigned payloads `integrity_only`, exposes `isAuthenticated=false`, and rejects every signature
+envelope. See [the compatibility contract](cryptographic-contracts-rc1.md).
 
 ## Identity
 
@@ -74,7 +62,7 @@ Public surface:
 
 ## Validation
 
-Validation covers public request validation and result validation at SDK boundaries. Beta-1 validation includes required option checks, request payload shape checks, safe-envelope payload hash checks, missing-signature checks, budget exhaustion checks, and HTTP/API error-code mapping.
+Validation covers public request validation and result validation at SDK boundaries. Beta-1 validation includes required option checks, request payload shape checks, safe-envelope payload hash checks, unsupported-signature rejection, budget exhaustion checks, and HTTP/API error-code mapping.
 
 Public surface:
 
@@ -118,12 +106,12 @@ Public surface:
 
 ## Security
 
-Security is the public facade that combines identity operations, portable crypto, safe envelopes, diagnostics, budget envelopes, and A2A message exchange. It is the subsystem most SDK users interact with directly.
+Security is the public facade that combines identity operations, local integrity utilities, safe envelopes, diagnostics, budget envelopes, and A2A message exchange. It is the subsystem most SDK users interact with directly.
 
 Public surface:
 
 - Security clients/providers.
-- Portable crypto helpers.
+- Local SHA-256 integrity helpers and retired fail-closed compatibility stubs.
 - Safe-envelope helpers.
 - Budget envelope helpers.
 - Diagnostics hooks.
@@ -131,18 +119,18 @@ Public surface:
 
 ## SDK Interaction With The C# Host
 
-The C# host is the authoritative runtime for identity scan, graph, exposure, and action operations. TypeScript, Java, Python, and Go clients call the hosted HTTP surface for those operations. Portable helpers are implemented locally in every SDK so callers can create and validate safe envelopes, sign and verify deterministic trust-core payloads, enforce in-memory budget envelopes, and exchange A2A message records without a host round trip.
+The C# host is the authoritative runtime for identity scan, graph, exposure, and action operations. TypeScript, Java, Python, and Go clients call the hosted HTTP surface for those operations. Portable helpers are implemented locally in every SDK so callers can create and validate safe envelopes, compute standard SHA-256 payload digests, enforce in-memory budget envelopes, and exchange A2A message records without a host round trip.
 
-## Portable Crypto And A2A Protocol
+## Local Integrity And A2A Simulation
 
-Portable crypto signs canonical byte payloads and verifies them using the same deterministic algorithms in all languages. Safe envelopes bind a canonical payload string to a payload hash and optional signature envelope. A2A messages wrap canonical payloads in safe envelopes and validate them on receipt.
+Portable helpers compare SHA-256 hashes of local plaintext only. Every claimed signature envelope is rejected; the local A2A queue provides delivery simulation without authentication or confidentiality.
 
 Public A2A receive reasons:
 
 - `accepted`
 - `message_not_found`
 - `payload_hash_mismatch`
-- `signature_missing`
+- `unsupported_signature`
 
 ## Excluded From Beta-1 Public SDK Surface
 

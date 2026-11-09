@@ -15,7 +15,7 @@ func (f roundTripFunc) Do(req *http.Request) (*http.Response, error) {
 }
 
 func TestScanIdentity(t *testing.T) {
-	client := NewAegirSecurityClient("https://example.test/apis", "", "", roundTripFunc(func(req *http.Request) (*http.Response, error) {
+	client := newTrustedTestClient("https://example.test/apis", "", "", roundTripFunc(func(req *http.Request) (*http.Response, error) {
 		return jsonResponse(200, `{"subjectId":"developer:dev_123","graph":{"graphId":"graph:developer:dev_123","generatedAtUtc":"2026-04-07T15:00:00Z","scores":{"exposureScore":0.15,"trustScore":0.92,"connectionClarityScore":0.88},"nodes":[{"nodeId":"developer:dev_123","nodeType":"User","displayName":"dev_123@example.com","status":"active","trustTier":"high","observedAtUtc":"2026-04-07T15:00:00Z","lastVerifiedAtUtc":null,"metadata":{}}],"edges":[],"metadata":{}},"exposure":{"graphId":"graph:developer:dev_123","generatedAtUtc":"2026-04-07T15:00:00Z","exposureScore":0.15,"findings":[{"findingId":"finding_001","category":"WeakConnection","severity":"Medium","summary":"Weak service linkage.","nodeId":"developer:dev_123","edgeId":null,"metadata":{}}],"summaryText":"Low exposure posture."},"actionHistory":[{"actionId":"action_001","subjectId":"developer:dev_123","actionType":"VerifyConnection","status":"Completed","targetNodeId":"application:app_portal","reason":"Go sample validation.","requestedAtUtc":"2026-04-07T15:00:00Z","reversedAtUtc":null,"reverseReason":null,"metadata":{}}]}`), nil
 	}))
 
@@ -45,9 +45,9 @@ func TestScanIdentity(t *testing.T) {
 }
 
 func TestHeadersAreAttached(t *testing.T) {
-	client := NewAegirSecurityClient("https://example.test/apis", "config-key", "developer-key", roundTripFunc(func(req *http.Request) (*http.Response, error) {
-		if req.Header.Get("X-Aegir-Config-Key") != "config-key" {
-			t.Fatalf("missing config header")
+	client := newTrustedTestClient("https://example.test/apis", "config-key", "developer-key", roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		if req.Header.Get("X-Aegir-Config-Key") != "" {
+			t.Fatalf("configuration secret forwarded to identity route")
 		}
 		if req.Header.Get("X-Aegir-Developer-Key") != "developer-key" {
 			t.Fatalf("missing developer header")
@@ -62,7 +62,7 @@ func TestHeadersAreAttached(t *testing.T) {
 }
 
 func TestNonTwoHundredReturnsAegirSecurityError(t *testing.T) {
-	client := NewAegirSecurityClient("https://example.test/apis", "", "", roundTripFunc(func(req *http.Request) (*http.Response, error) {
+	client := newTrustedTestClient("https://example.test/apis", "", "", roundTripFunc(func(req *http.Request) (*http.Response, error) {
 		response := jsonResponse(404, `{"error":"not_found"}`)
 		response.Header.Set("X-Correlation-Id", "corr_123")
 		return response, nil
@@ -91,7 +91,8 @@ func TestDiagnosticsHooksReceiveEvents(t *testing.T) {
 	traces := make([]AegirTraceEvent, 0)
 
 	client := NewAegirSecurityClientWithOptions(ClientOptions{
-		BaseURL: "https://example.test/apis",
+		BaseURL:          "https://example.test/apis",
+		TrustHTTPAdapter: true,
 		HTTPClient: roundTripFunc(func(req *http.Request) (*http.Response, error) {
 			response := jsonResponse(200, `{"graphId":"graph:developer:dev_123","generatedAtUtc":"2026-04-07T15:00:00Z","scores":{"exposureScore":0.15,"trustScore":0.92,"connectionClarityScore":0.88},"nodes":[],"edges":[],"metadata":{}}`)
 			response.Header.Set("X-Correlation-Id", "corr_diag")
@@ -192,6 +193,10 @@ func jsonResponse(status int, body string) *http.Response {
 	return &http.Response{
 		StatusCode: status,
 		Body:       io.NopCloser(strings.NewReader(body)),
-		Header:     make(http.Header),
+		Header:     http.Header{"Content-Type": []string{"application/json"}},
 	}
+}
+
+func newTrustedTestClient(base, config, developer string, adapter HTTPDoer) *AegirSecurityClient {
+	return NewAegirSecurityClientWithOptions(ClientOptions{BaseURL: base, ConfigKey: config, DeveloperKey: developer, HTTPClient: adapter, TrustHTTPAdapter: true})
 }

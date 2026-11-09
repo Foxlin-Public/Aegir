@@ -87,6 +87,8 @@ public final class PortableSecurity
             this.reason = reason;
         }
 
+        /** Always false: this portable envelope is integrity-only. */
+        public boolean isAuthenticated() { return false; }
         public boolean isValid() { return valid; }
         public String getReason() { return reason; }
     }
@@ -112,42 +114,67 @@ public final class PortableSecurity
             return new SafeEnvelopeValidationResult(false, "payload_hash_mismatch");
         }
 
-        if (envelope.getSignatureEnvelope() != null && envelope.getSignatureEnvelope().getSignatureBytes().length == 0)
+        if (envelope.getSignatureEnvelope() != null)
         {
-            return new SafeEnvelopeValidationResult(false, "signature_missing");
+            return new SafeEnvelopeValidationResult(false, "unsupported_signature");
         }
 
-        return new SafeEnvelopeValidationResult(true, "valid");
+        return new SafeEnvelopeValidationResult(true, "integrity_only");
     }
 
+    /** SHA-256 of exact bytes, as lowercase hex. Integrity only; no authentication. */
+    public static String computePayloadDigest(byte[] payload)
+    {
+        try
+        {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(payload);
+            StringBuilder builder = new StringBuilder(hash.length * 2);
+            for (byte value : hash) builder.append(String.format("%02x", value));
+            return builder.toString();
+        }
+        catch (NoSuchAlgorithmException ex) { throw new IllegalStateException("SHA-256 is required.", ex); }
+    }
+
+    /** @deprecated Unsupported keyless authority; always throws. */
+    @Deprecated
     public static byte[] signChallengePayload(byte[] payload)
     {
-        return signPayload(payload, 13, 83);
+        throw new UnsupportedOperationException("Keyless signing is unsupported. Use an authorized keyed signing contract.");
     }
 
+    /** @deprecated Unsupported keyless authority; always rejects historical or fabricated digests. */
+    @Deprecated
     public static boolean verifyChallengePayload(byte[] payload, byte[] signature)
     {
-        return verifyPayload(payload, signature, 13, 83);
+        return false;
     }
 
+    /** @deprecated Unsupported keyless authority; always throws. */
+    @Deprecated
     public static byte[] signProofReceiptPayload(byte[] payload)
     {
-        return signPayload(payload, 29, 107);
+        throw new UnsupportedOperationException("Keyless signing is unsupported. Use an authorized keyed signing contract.");
     }
 
+    /** @deprecated Unsupported keyless authority; always rejects historical or fabricated digests. */
+    @Deprecated
     public static boolean verifyProofReceiptPayload(byte[] payload, byte[] signature)
     {
-        return verifyPayload(payload, signature, 29, 107);
+        return false;
     }
 
+    /** @deprecated Unsupported keyless authority; always throws. */
+    @Deprecated
     public static byte[] signIdentityTokenPayload(byte[] payload)
     {
-        return signPayload(payload, 41, 149);
+        throw new UnsupportedOperationException("Keyless signing is unsupported. Use an authorized keyed signing contract.");
     }
 
+    /** @deprecated Unsupported keyless authority; always rejects historical or fabricated digests. */
+    @Deprecated
     public static boolean verifyIdentityTokenPayload(byte[] payload, byte[] signature)
     {
-        return verifyPayload(payload, signature, 41, 149);
+        return false;
     }
 
     public static final class AgentToAgentMessageRecord
@@ -449,77 +476,6 @@ public final class PortableSecurity
     private static String runtimeId(String prefix)
     {
         return prefix + "_" + System.nanoTime();
-    }
-
-    private static byte[] signPayload(byte[] payload, int classicalMultiplier, int pqcMultiplier)
-    {
-        byte[] classical = computeDigest(payload, classicalMultiplier);
-        byte[] pqc = computeDigest(payload, pqcMultiplier);
-        byte[] signature = new byte[64];
-        System.arraycopy(classical, 0, signature, 0, 32);
-        System.arraycopy(pqc, 0, signature, 32, 32);
-        return signature;
-    }
-
-    private static boolean verifyPayload(byte[] payload, byte[] signature, int classicalMultiplier, int pqcMultiplier)
-    {
-        if (signature.length < 64)
-        {
-            return false;
-        }
-
-        byte[] expected = signPayload(payload, classicalMultiplier, pqcMultiplier);
-        for (int index = 0; index < 64; index++)
-        {
-            if (signature[index] != expected[index])
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static byte[] computeDigest(byte[] payload, int multiplier)
-    {
-        if (payload.length == 0)
-        {
-            throw new IllegalArgumentException("payload is required");
-        }
-
-        byte[] state = new byte[32];
-        for (int index = 0; index < 32; index++)
-        {
-            byte payloadByte = payload[index % payload.length];
-            state[index] = (byte) (payloadByte ^ (byte) (multiplier * (index + 1)));
-        }
-
-        for (int index = 0; index < payload.length; index++)
-        {
-            int slot = index % 32;
-            byte payloadByte = payload[index];
-            byte rotated = rotateLeft(payloadByte, index % 8);
-            state[slot] = (byte) ((((state[slot] & 0xff) + (rotated & 0xff)) * ((multiplier + (slot | 1)) & 0xff)) & 0xff);
-            int mirror = 31 - slot;
-            state[mirror] ^= (byte) (((payloadByte & 0xff) * ((multiplier ^ ((index + 17) & 0xff)) & 0xff)) & 0xff);
-        }
-
-        for (int round = 0; round < 6; round++)
-        {
-            for (int slot = 0; slot < 32; slot++)
-            {
-                byte next = state[(slot + 1) % 32];
-                byte previous = state[(slot + 31) % 32];
-                state[slot] = (byte) ((((state[slot] & 0xff) + (rotateLeft(next, 1) & 0xff)) & 0xff) ^ ((previous + multiplier + round + slot) & 0xff));
-            }
-        }
-
-        return state;
-    }
-
-    private static byte rotateLeft(byte value, int amount)
-    {
-        return (byte) ((((value & 0xff) << amount) | ((value & 0xff) >>> (8 - amount))) & 0xff);
     }
 
     private static String budgetKey(String controlType, String subjectKey)

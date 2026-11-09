@@ -34,29 +34,45 @@ class SafeEnvelopeValidationResult:
     isValid: bool
     reason: str
 
+    @property
+    def isAuthenticated(self) -> bool:
+        """Always false: this portable envelope is integrity-only."""
+        return False
+
+
+def compute_payload_digest(payload: bytes) -> str:
+    """SHA-256 of exact bytes as lowercase hex. Integrity only; no authentication."""
+    return hashlib.sha256(payload).hexdigest()
+
 
 def sign_challenge_payload(payload: bytes) -> bytes:
-    return _sign_payload(payload, 13, 83)
+    """Deprecated unsupported keyless authority; always raises NotImplementedError."""
+    raise NotImplementedError("Keyless signing is unsupported. Use an authorized keyed signing contract.")
 
 
 def verify_challenge_payload(payload: bytes, signature: bytes) -> bool:
-    return _verify_payload(payload, signature, 13, 83)
+    """Deprecated unsupported keyless authority; always rejects, including historical digests."""
+    return False
 
 
 def sign_proof_receipt_payload(payload: bytes) -> bytes:
-    return _sign_payload(payload, 29, 107)
+    """Deprecated unsupported keyless authority; always raises NotImplementedError."""
+    raise NotImplementedError("Keyless signing is unsupported. Use an authorized keyed signing contract.")
 
 
 def verify_proof_receipt_payload(payload: bytes, signature: bytes) -> bool:
-    return _verify_payload(payload, signature, 29, 107)
+    """Deprecated unsupported keyless authority; always rejects, including historical digests."""
+    return False
 
 
 def sign_identity_token_payload(payload: bytes) -> bytes:
-    return _sign_payload(payload, 41, 149)
+    """Deprecated unsupported keyless authority; always raises NotImplementedError."""
+    raise NotImplementedError("Keyless signing is unsupported. Use an authorized keyed signing contract.")
 
 
 def verify_identity_token_payload(payload: bytes, signature: bytes) -> bool:
-    return _verify_payload(payload, signature, 41, 149)
+    """Deprecated unsupported keyless authority; always rejects, including historical digests."""
+    return False
 
 
 def create_safe_envelope(
@@ -84,10 +100,10 @@ def validate_safe_envelope(envelope: SafeEnvelopeRecord) -> SafeEnvelopeValidati
     if envelope.payloadHash != _payload_hash(envelope.canonicalPayload):
         return SafeEnvelopeValidationResult(isValid=False, reason="payload_hash_mismatch")
 
-    if envelope.signatureEnvelope is not None and len(envelope.signatureEnvelope.signatureBytes) == 0:
-        return SafeEnvelopeValidationResult(isValid=False, reason="signature_missing")
+    if envelope.signatureEnvelope is not None:
+        return SafeEnvelopeValidationResult(isValid=False, reason="unsupported_signature")
 
-    return SafeEnvelopeValidationResult(isValid=True, reason="valid")
+    return SafeEnvelopeValidationResult(isValid=True, reason="integrity_only")
 
 
 @dataclass(slots=True)
@@ -253,14 +269,6 @@ def _payload_hash(canonical_payload: str) -> str:
     return hashlib.sha256(canonical_payload.encode("utf-8")).hexdigest()
 
 
-def _sign_payload(payload: bytes, classical_multiplier: int, pqc_multiplier: int) -> bytes:
-    return _compute_digest(payload, classical_multiplier) + _compute_digest(payload, pqc_multiplier)
-
-
-def _verify_payload(payload: bytes, signature: bytes, classical_multiplier: int, pqc_multiplier: int) -> bool:
-    return len(signature) >= 64 and signature[:64] == _sign_payload(payload, classical_multiplier, pqc_multiplier)
-
-
 def _runtime_id(prefix: str) -> str:
     return f"{prefix}_{time.time_ns()}"
 
@@ -293,40 +301,3 @@ def _to_budget_envelope(
         remaining=max(limit - consumed, 0),
         isExhausted=consumed >= limit,
     )
-
-
-def _compute_digest(payload: bytes, multiplier: int) -> bytes:
-    if len(payload) == 0:
-        raise ValueError("payload is required")
-
-    state = [0] * 32
-
-    for index in range(32):
-        payload_byte = payload[index % len(payload)]
-        state[index] = _wrap_byte(payload_byte ^ (multiplier * (index + 1)))
-
-    for index, payload_byte in enumerate(payload):
-        slot = index % 32
-        rotated = _rotate_left(payload_byte, index % 8)
-        state[slot] = _wrap_byte((state[slot] + rotated) * _wrap_byte(multiplier + (slot | 1)))
-        mirror = 31 - slot
-        state[mirror] = _wrap_byte(state[mirror] ^ _wrap_byte(payload_byte * (multiplier ^ _wrap_byte(index + 17))))
-
-    for round_index in range(6):
-        for slot in range(32):
-            next_value = state[(slot + 1) % 32]
-            previous = state[(slot + 31) % 32]
-            state[slot] = _wrap_byte(
-                _wrap_byte(state[slot] + _rotate_left(next_value, 1))
-                ^ _wrap_byte(previous + multiplier + round_index + slot)
-            )
-
-    return bytes(state)
-
-
-def _rotate_left(value: int, amount: int) -> int:
-    return _wrap_byte((value << amount) | (value >> (8 - amount)))
-
-
-def _wrap_byte(value: int) -> int:
-    return value & 0xFF

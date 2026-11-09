@@ -1,0 +1,23 @@
+{
+  "owner": "Foxlin Industries",
+  "scope": "E2-C7 bounded canonical metadata read; exact source-bound receipts govern qualification",
+  "routes": [
+    {
+      "host": "api",
+      "method": "POST",
+      "path": "/v1/skills/v2/secure-execution",
+      "contractPath": "/v1/skills/v2/secure-execution",
+      "operationId": "api_post_v1_skills_v2_secure_execution",
+      "source": "Aegir/src/Foxlin.Aegir.Auth/Services/SecureExecutionEndpoints.cs",
+      "classification": "restricted-c7-installed-secure-execution-receipt",
+      "schemaCoverage": "source-derived-bounded-request-artifact-and-response",
+      "generalDeveloperApi": false
+    }
+  ],
+  "httpMcpRegistry": 14,
+  "stdioRegistry": 12,
+  "newMcpTool": false,
+  "newTypedDotnetSourceClient": "AegirSecureExecutionSkillApiClient",
+  "otherTypedLanguages": false,
+  "publicationAuthorized": false
+}

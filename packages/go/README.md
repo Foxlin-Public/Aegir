@@ -1,85 +1,59 @@
-# Aegir Security Go Package
+# Aegir Security Go source package
 
-`foxlin/aegir-security-go` is the Beta-1 Go SDK for Aegir Security.
+Foxlin Industries. Version `0.1.1-beta.1` is retained. This is local, unreleased
+source; the module is not published or resolvable through `go get`.
 
-## Installation
+Build/test inside this directory with an installed Go toolchain (minimum 1.22):
 
-```bash
-go get foxlin/aegir-security-go@v0.1.1-beta.1
+```powershell
+$env:GOTOOLCHAIN='local'
+$env:GOPROXY='off'
+$env:GOSUMDB='off'
+go test -count=1 ./...
 ```
 
-## Quickstart
+The module has no third-party dependencies. For a standalone example, create a
+local module and use a local `replace` directive pointing to this source tree.
+Do not put credentials in that module or commit private configuration.
 
 ```go
-package main
-
-import (
-	"fmt"
-	"net/http"
-
-	aegirsecurity "foxlin/aegir-security-go"
-)
-
-func main() {
-	client := aegirsecurity.NewAegirSecurityClientWithOptions(aegirsecurity.ClientOptions{
-		BaseURL:      "https://api.aegir.foxlinindustries.com/apis",
-		ConfigKey:    "sample-config-key",
-		DeveloperKey: "sample-developer-key",
-		HTTPClient:   http.DefaultClient,
-		Diagnostics: &aegirsecurity.DiagnosticsHooks{
-			Log: func(entry aegirsecurity.LogEntry) { fmt.Println(entry.EventName) },
-		},
-	})
-
-	scan, err := client.ScanIdentity("developer:dev_123")
-	if err != nil {
-		if typed, ok := err.(*aegirsecurity.AegirSecurityError); ok {
-			fmt.Println(typed.Status, typed.Code, typed.CorrelationID)
-		}
-		return
-	}
-	graph, _ := client.GetIdentityGraph(scan.SubjectID)
-	action, _ := client.PerformAction(aegirsecurity.PerformIdentityActionRequest{
-		SubjectID:  scan.SubjectID,
-		ActionType: aegirsecurity.IdentityActionTypeLockIdentity,
-	})
-	_, _ = graph, action
-}
+// Load endpoint and developer credential from host-owned private configuration.
+client := aegirsecurity.NewAegirSecurityClientWithOptions(aegirsecurity.ClientOptions{
+    BaseURL: privateAPIBaseURL, // HTTPS; include any deployment prefix such as /apis
+    DeveloperKey: privateDeveloperCredential,
+})
+defer client.Close()
+scan, err := client.ScanIdentityContext(ctx, subjectID)
+if err != nil { return err }
+// This is an authorized security report, never a cached application-access grant.
+_ = scan
 ```
 
-## API Reference
+Retained operations are `ScanIdentity`, `GetIdentityGraph`,
+`GetIdentityGraphJSON`, `GetExposureSummary`, `PerformAction`, `ReverseAction`,
+and `GetActionHistory`. Their signatures remain available; additive `...Context`
+variants accept caller cancellation. Every request also has a bounded timeout:
+15 seconds by default, configurable through `ClientOptions.Timeout`, maximum 30
+seconds. `Close` cancels active work and closes owned idle connections. Reuse
+a client for its lifetime and close it when the host stops using it.
 
-See [Beta-1 API Reference](../../docs/api-reference-0.1.1-beta-1.md).
+Read [LEGACY-SECURITY-HARDENING.md](LEGACY-SECURITY-HARDENING.md) before migrating
+an injected transport. The transitional configuration-key argument/member remains
+for source compatibility but is ignored on these identity-bearing operations.
+Use the separate [authorization integration](AUTHORIZATION-INTEGRATION.md) for
+fresh application authorization, password/MFA exchange and event reconciliation.
 
-## Supported Operations
+HTTP failures retain `*AegirSecurityError` and its public fields, but arbitrary
+upstream `Body` content is no longer retained. Error codes use the finite SDK
+vocabulary. Diagnostics contain operation/status metadata, never subject paths,
+reversal reasons, credentials or raw response text. `ClientOptions` normal
+formatting and JSON serialization redact private values; hosts must still keep
+individual credential fields private.
 
-- `ScanIdentity`
-- `GetIdentityGraph`
-- `GetIdentityGraphJSON`
-- `GetExposureSummary`
-- `PerformAction`
-- `ReverseAction`
-- `GetActionHistory`
-- portable crypto helpers
-- safe envelope helpers
-- `NewInMemoryBudgetEnvelopeService`
-- `NewInMemoryAgentToAgentProtocol`
-
-## Error Model
-
-HTTP failures return `*AegirSecurityError` with `Status`, typed `Code`, `CorrelationID`, and `Body`. Budget exhaustion returns `*BudgetExhaustedError`.
-
-## Diagnostics Hooks
-
-`DiagnosticsHooks` accepts `Log`, `Metric`, and `Trace` callbacks. Go uses idiomatic `LogEntry`, `MetricEvent`, and `TraceEvent` names, with `AegirLogEntry`, `AegirMetricEvent`, and `AegirTraceEvent` aliases.
-
-## Budget Options
-
-`NewInMemoryBudgetEnvelopeService` accepts `BudgetEnvelopeOptions`.
-
-Defaults:
-
-- `IdentityScanLimit`: `25`
-- `ExternalLookupLimit`: `50`
-- `ConnectionGraphRebuildLimit`: `10`
-- `WindowMS`: `60000`
+The existing in-memory budget and A2A helpers are local development helpers.
+Their defaults remain 25 scans, 50 lookups and 10 graph rebuilds per 60 seconds.
+They do not supply server authorization. Retired keyless sign helpers still panic,
+verify helpers still return false, and `ComputePayloadDigest` remains standard
+SHA256 over exact bytes. Unsigned envelopes provide integrity only; no non-null
+signature is accepted as authority. No cryptographic algorithm or package version
+is changed by this repair.

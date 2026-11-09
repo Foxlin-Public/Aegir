@@ -104,9 +104,10 @@ Keep public:
 - `SafeEnvelopeValidationResult`
 - `createSafeEnvelope`
 - `validateSafeEnvelope`
+- `computePayloadDigest` — SHA-256 integrity utility, no authority
 - `signChallengePayload`
 - `verifyChallengePayload`
-- `signProofReceiptPayload` *(deprecated: keyless digest, see below)*
+- `signProofReceiptPayload` *(deprecated fail-closed stub, see below)*
 - `verifyProofReceiptPayload`
 - `signIdentityTokenPayload`
 - `verifyIdentityTokenPayload`
@@ -276,10 +277,41 @@ The intended Beta 1 public surface is defined, and the C# public type surface ha
 
 ## Deprecated: portable trust-core helpers
 
-> **These helpers are not Aegir's cryptography.** They are a deterministic, **keyless**
-> digest: anyone who knows the algorithm - and it is published here, in five languages - can
-> produce a matching value. They therefore prove nothing about possession of a key, and they must
-> not be used to authenticate anything or to establish integrity against an adversary.
->
-> They exist for cross-language parity tests and local development fixtures, and are kept in
-> Beta-1 only so existing callers keep compiling. Treat them as deprecated.
+The six old challenge, proof-receipt and identity-token sign/verify symbols remain to preserve
+source linkage, with an intentional security behavior break: signing always throws (Go panics)
+and verification always rejects. The homegrown keyless digest has been removed. The supported
+local integrity utility is SHA-256 `computePayloadDigest` / `compute_payload_digest` /
+`ComputePayloadDigest`; it never establishes identity. Every portable signature envelope is
+rejected. Matching unsigned envelope hashes return `integrity_only` and false authentication.
+
+See [the RC1 cryptographic compatibility contract](cryptographic-contracts-rc1.md) for the
+per-language mapping and the distinction from genuine runtime keyed cryptography.
+
+
+## C1 Skills source addendum
+
+See [Skills HTTP MCP source contract](skills-mcp-source.md). The unreleased .NET integration source adds `AegirSkillMcpClient.ExecuteAsync` and `ReconcileAsync`; JavaScript/TypeScript, Python, Java and Go expose this C1 capability only through the raw HTTP contract, without typed C1 methods or claimed C1 native parity. It requires a newly consented `ags1_` reference and current Agent identity. Old no-Skill grants cannot execute Skills. Runtime HTTP registry:14 before filtering; SDK stdio registry:12 with no Skill runner. This source-only addition changes no SDK package version and authorizes no publication or deployment. Runtime qualification is recorded by exact source-bound acceptance receipts; deployment remains unaccepted.
+
+
+## C2 installed Skills source addendum
+
+The additive [Skills source contract](skills-mcp-source.md#c2-scoped-installation-and-installed-grants) models current Human installation management and separately consented installed grants. The .NET source explicitly selects `AegirSkillMcpClient.ForInstalledSkill` for new `ags2_` references; the default constructor retains C1 `ags1_` mode. All five ecosystems may use the raw installation HTTP contract; no typed management SDK or installed-Skill parity in the other four languages is claimed. Uninstall is terminal for that instance. Explicit reinstall creates a fresh identity and requires fresh execution consent. Package versions and publication status remain unchanged.
+
+
+## C4 source-only authorization observation
+
+`POST /v1/skills/v2/authorization-inspection` uses the [strict C4 source contract](authorization-skill-source.md) and exact current `ags2_` authority, original Human target and permission. .NET adds a source-only typed API client; Node/TypeScript, Python, Java and Go have raw HTTP only. No new MCP/stdio operation or distribution version. Implementation remains under source-bound qualification; no publication or deployment acceptance.
+
+
+## C6 source-only Agent enrollment preparation
+
+The [C6 source contract](agent-onboarding-skill-source.md) adds `POST /v1/skills/v2/agent-onboarding-preparation`, operation `application.agent-onboarding.prepare`, in original family `agent-onboarding`. .NET integration source provides `AegirAgentOnboardingSkillApiClient.PrepareAsync` and `ReconcileAsync`. Node/TypeScript, Python, Java and Go have the raw HTTP contract only; no typed C6 parity is claimed. Existing SDK package versions, twelve stdio tools and publication status are unchanged.
+
+This is exact current installed-Skill/consent-bound preparation, not proposal creation, identity registration, issuance approval, credential activation, private-key custody, group membership or delegation. Existing identities cannot be adopted; unsupported prerequisites remain explicit. Full native adversarial qualification is pending; source-bound C6 receipts govern acceptance. No publication, deployment or production release is authorized.
+
+
+## C7 source-only secure execution and receipt
+
+The [C7 source contract](secure-execution-receipt-skill-source.md) adds `POST /v1/skills/v2/secure-execution` for the bounded canonical group administrative metadata read. .NET integration source offers `AegirSecureExecutionSkillApiClient.ExecuteAsync` / `ReconcileAsync` and `AegirSecureExecutionReceiptVerifier`; Node/TypeScript, Python, Java and Go use raw HTTP only. This source profile adds no MCP/stdio tool, package version or registry publication.
+
+The ML-DSA-65 artifact binds a committed read to its exact original operation and approved authority context. Public verification requires a separately trusted public key, lifecycle facts and operation/tenant/Agent/root/grant/resource context. It proves artifact cryptography under those assumptions; current authority, independent SQL truth, client delivery and external effects require separate evidence. Exact C7 source-bound runtime/review receipts govern acceptance. Production verifier distribution remains unqualified.

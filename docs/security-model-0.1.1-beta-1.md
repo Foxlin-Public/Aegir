@@ -34,7 +34,7 @@ Beta-1 severities:
 
 ## Safe Envelope Model
 
-Safe envelopes protect canonical payload integrity across SDKs. An envelope contains:
+Local safe envelopes compare an unkeyed SHA-256 digest with canonical plaintext. They authenticate no issuer. An envelope contains:
 
 - `envelopeId`
 - `payloadType`
@@ -43,7 +43,7 @@ Safe envelopes protect canonical payload integrity across SDKs. An envelope cont
 - `createdAtUtc`
 - optional `signatureEnvelope`
 
-Validation recomputes the hash from `canonicalPayload`. If the recomputed hash does not match `payloadHash`, validation returns `payload_hash_mismatch`. If a signature envelope is present without required signature bytes, validation returns `signature_missing`.
+Validation recomputes the hash from `canonicalPayload`. If the recomputed hash does not match `payloadHash`, validation returns `payload_hash_mismatch`. Any non-null signature envelope returns `unsupported_signature`. A matching unsigned record returns `integrity_only`, with `isAuthenticated=false`.
 
 ## What Aegir Actually Uses
 
@@ -67,19 +67,13 @@ A protected message is bound to its transaction in three independent places - th
 key-derivation context and the AEAD additional data - so it cannot be moved to a different
 transaction, sender, recipient or action. Relay the envelope unchanged.
 
-## Portable Trust-Core Helpers (deprecated)
+## Retired Portable Trust-Core Helpers
 
-Beta-1 still exposes portable helper functions in every SDK: challenge, proof-receipt and
-identity-token payload signing and verification.
-
-> **These helpers are not Aegir's cryptography.** They are a deterministic, **keyless**
-> digest: anyone who knows the algorithm - and it is published here, in five languages - can
-> produce a matching value. They therefore prove nothing about possession of a key, and they must
-> not be used to authenticate anything or to establish integrity against an adversary.
->
-> They exist for cross-language parity tests and local development fixtures, and are kept in
-> Beta-1 only so existing callers keep compiling. Treat them as deprecated.
-
+AEG-RC1-R004 removes the old keyless digest implementation. The six old sign/verify symbols
+remain deprecated compatibility stubs: sign always throws (Go panics), verify always returns
+false. Standard `computePayloadDigest` hashes bytes using SHA-256 and authenticates nothing.
+See [the compatibility contract](cryptographic-contracts-rc1.md) for each language's symbols,
+intentional behavior changes, hosted alternatives and native/PQC limitations.
 
 ## Budgeting And Operational Controls
 

@@ -1,0 +1,1423 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Foxlin Industries Aegir C2 scoped Skill installation source supplement",
+    "version": "c2-source-v1",
+    "description": "Scoped logical installation lifecycle with genuine current Human management. No external artifact installer, execution expansion or production certification."
+  },
+  "paths": {
+    "/v1/delegations/v4/root-t1": {
+      "post": {
+        "operationId": "api_post_v1_delegations_v4_root_t1",
+        "summary": "C2 reviewed bounded metadata Skill root-t1",
+        "x-aegir-host": "api",
+        "x-aegir-classification": "restricted-c2-installed-skills-source",
+        "x-aegir-authorization": "Current exact Human issuer or current authorized Human approver; separate fresh C2 purposes",
+        "x-aegir-organization-context": "Canonical sole current organization/application mapping and current staff/source authority; personal scope belongs only to original issuer",
+        "x-aegir-identity-type": "Current exact Human issuer or current authorized Human approver; separate fresh C2 purposes",
+        "x-aegir-license": "Current active bound developer/application/environment and canonical original resource authority; no financial acquisition",
+        "x-aegir-idempotency": "Exact durable request/operation identity; no new identity to escape budget, secret replay or inferred Abort",
+        "x-aegir-limits": "Bounded strict JSON, registry rows/manifest bytes, current exact pins, finite exclusive reservations, independently retained witness",
+        "tags": [
+          "E2-C2 reviewed metadata Skills"
+        ],
+        "security": [
+          {
+            "BearerToken": []
+          },
+          {
+            "SessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/C2RootCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bounded current result or immutable nonsecret replay; never infer client delivery or Abort.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/C2Result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/delegations/v4/child": {
+      "post": {
+        "operationId": "api_post_v1_delegations_v4_child",
+        "summary": "C2 reviewed bounded metadata Skill child",
+        "x-aegir-host": "api",
+        "x-aegir-classification": "restricted-c2-installed-skills-source",
+        "x-aegir-authorization": "Current original Agent and own parent ags2 installed reference",
+        "x-aegir-organization-context": "Canonical sole current organization/application mapping and current staff/source authority; personal scope belongs only to original issuer",
+        "x-aegir-identity-type": "Current original Agent and own parent ags2 installed reference",
+        "x-aegir-license": "Current active bound developer/application/environment and canonical original resource authority; no financial acquisition",
+        "x-aegir-idempotency": "Exact durable request/operation identity; no new identity to escape budget, secret replay or inferred Abort",
+        "x-aegir-limits": "Bounded strict JSON, registry rows/manifest bytes, current exact pins, finite exclusive reservations, independently retained witness",
+        "tags": [
+          "E2-C2 reviewed metadata Skills"
+        ],
+        "security": [
+          {
+            "AgentKey": [],
+            "SkillDelegationReference": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/C2Child"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bounded current result or immutable nonsecret replay; never infer client delivery or Abort.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/C2Result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/skills/v2/installations": {
+      "post": {
+        "operationId": "api_post_v1_skills_v2_installations",
+        "summary": "Current Human scoped logical Skill installation management",
+        "x-aegir-host": "api",
+        "x-aegir-classification": "restricted-c2-installed-skills-source",
+        "x-aegir-authorization": "Current personal Human resource owner or exact current organization/group administrator; Developer/Agent rejected; fresh purpose-bound MFA for mutations; registry approval and current installation remain separate",
+        "x-aegir-organization-context": "Canonical sole current organization/application mapping and current staff/source authority; personal scope belongs only to original issuer",
+        "x-aegir-identity-type": "Current authenticated Human only",
+        "x-aegir-license": "Current active bound developer/application/environment and canonical original resource authority; no financial acquisition",
+        "x-aegir-idempotency": "Exact durable request/operation identity; no new identity to escape budget, secret replay or inferred Abort",
+        "x-aegir-limits": "Bounded strict JSON, registry rows/manifest bytes, current exact pins, finite exclusive reservations, independently retained witness",
+        "tags": [
+          "E2-C2 reviewed metadata Skills"
+        ],
+        "security": [
+          {
+            "BearerToken": []
+          },
+          {
+            "SessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/C2InstallationCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bounded current result or immutable nonsecret replay; never infer client delivery or Abort.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/C2InstallationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C2Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C2Result"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "C2Agent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "agentId": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "credentialId": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "epoch": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "agentId",
+          "credentialId",
+          "epoch"
+        ]
+      },
+      "C2Child": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "action": {
+            "enum": [
+              "issue",
+              "inspect",
+              "revoke",
+              "suspend"
+            ]
+          },
+          "parentId": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "targetAgentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resourcePolicy": {
+            "anyOf": [
+              {
+                "enum": [
+                  "self.account.metadata.read",
+                  "group.administration.metadata.read"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resourceAlias": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scopes": {
+            "anyOf": [
+              {
+                "type": "array",
+                "maxItems": 4,
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maximumUses": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 512
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expiresAt": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 253402300799
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subjectId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "requestId",
+          "action",
+          "parentId",
+          "targetAgentId",
+          "resourcePolicy",
+          "resourceAlias",
+          "scopes",
+          "maximumUses",
+          "expiresAt",
+          "subjectId"
+        ]
+      },
+      "C2Definition": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "aegir.installed-skill-chain-root-t1/v4"
+          },
+          "allocationMode": {
+            "const": "exclusive-child-reservation-no-automatic-refund/v1"
+          },
+          "maximumEdges": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "maximumChildren": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "maximumUses": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 512
+          },
+          "agents": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 32,
+            "items": {
+              "$ref": "#/components/schemas/C2Agent"
+            }
+          },
+          "skill": {
+            "$ref": "#/components/schemas/C2SkillPin"
+          }
+        },
+        "required": [
+          "schema",
+          "allocationMode",
+          "maximumEdges",
+          "maximumChildren",
+          "maximumUses",
+          "agents",
+          "skill"
+        ]
+      },
+      "C2Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "C2InstallationCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "action": {
+            "enum": [
+              "install",
+              "reinstall",
+              "upgrade",
+              "enable",
+              "suspend",
+              "uninstall",
+              "inspect",
+              "status"
+            ]
+          },
+          "application": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.:-]+$"
+          },
+          "organization": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9_.:-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "group": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9_.:-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "installationId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "predecessorId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "skillKey": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "manifestDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "adapterDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resourcePolicy": {
+            "anyOf": [
+              {
+                "enum": [
+                  "self.account.metadata.read",
+                  "group.administration.metadata.read"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resourceId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9_.:-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "targetAgents": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_.:-]+$"
+            },
+            "maxItems": 32,
+            "uniqueItems": true,
+            "description": "Canonical ordinal-sorted explicit current app-bound Agent IDs; empty for noncreation management."
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 64
+          },
+          "expiresAt": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 253402300799
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "enum": [
+                  "skills:installation:install:v1",
+                  "skills:installation:reinstall:v1",
+                  "skills:installation:upgrade:v1",
+                  "skills:installation:enable:v1",
+                  "skills:installation:suspend:v1",
+                  "skills:installation:uninstall:v1"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totpCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{6}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "operationId",
+          "action",
+          "application",
+          "organization",
+          "group",
+          "installationId",
+          "predecessorId",
+          "skillKey",
+          "manifestDigest",
+          "adapterDigest",
+          "resourcePolicy",
+          "resourceId",
+          "targetAgents",
+          "expectedRevision",
+          "expiresAt",
+          "purpose",
+          "totpCode"
+        ]
+      },
+      "C2InstallationResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "enum": [
+              "InstallationRequested",
+              "Validated",
+              "Installed",
+              "Enabled",
+              "Suspended",
+              "UninstallRequested",
+              "Uninstalled",
+              "ReinstallationRequested",
+              "Reinstalled",
+              "Unknown/recovery-required",
+              "Unauthorized"
+            ]
+          },
+          "installationId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 64
+          },
+          "isReplay": {
+            "type": "boolean"
+          },
+          "classification": {
+            "const": "scoped_installation_relationship_only"
+          },
+          "artifactPhysicallyRemoved": {
+            "const": false
+          },
+          "currentState": {
+            "anyOf": [
+              {
+                "enum": [
+                  "InstallationRequested",
+                  "Validated",
+                  "Installed",
+                  "Enabled",
+                  "Suspended",
+                  "UninstallRequested",
+                  "Uninstalled",
+                  "ReinstallationRequested",
+                  "Reinstalled"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "outcome",
+          "installationId",
+          "revision",
+          "isReplay",
+          "classification",
+          "artifactPhysicallyRemoved",
+          "currentState"
+        ]
+      },
+      "C2Metadata": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "resourceAlias": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "depth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 128
+          }
+        },
+        "required": [
+          "resourceAlias",
+          "status"
+        ]
+      },
+      "C2Result": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "grantId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "credential": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^ags2_[0-9a-f]{64}$",
+                "description": "Return once after durable new root/child commit. Pair only with the exact bound current Agent key. Never reconstructed on replay."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "challenge": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expiresAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isReplay": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/C2Metadata"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resourceAlias": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalDefinition": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16384
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "outcome",
+          "grantId",
+          "credential",
+          "challenge",
+          "expiresAt",
+          "isReplay",
+          "metadata",
+          "resourceAlias",
+          "operationId",
+          "approvalDigest",
+          "approvalDefinition"
+        ]
+      },
+      "C2RootCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "proposalId": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "intentDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "requestId": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "action": {
+            "enum": [
+              "challenge",
+              "approve",
+              "consent-challenge",
+              "consent-approve",
+              "activate",
+              "inspect",
+              "revoke",
+              "suspend",
+              "configure"
+            ]
+          },
+          "challenge": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totpCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{6}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "enum": [
+                  "delegation:installed-skill-chain-policy:approve:v1",
+                  "delegation:installed-skill-chain-root:consent:v1"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "definition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/C2Definition"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subjectGrantId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "proposalId",
+          "intentDigest",
+          "requestId",
+          "action",
+          "challenge",
+          "totpCode",
+          "purpose",
+          "approvalDigest",
+          "definition",
+          "subjectGrantId"
+        ]
+      },
+      "C2SkillPin": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "manifest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "adapter": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "approval": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "enablement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "installation": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "installationApproval": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{32}$"
+          }
+        },
+        "required": [
+          "key",
+          "publisher",
+          "manifest",
+          "adapter",
+          "approval",
+          "enablement",
+          "installation",
+          "installationApproval"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "BearerToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "SessionToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Session-Token"
+      },
+      "DeveloperKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Developer-Key"
+      },
+      "AgentKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Agent-Key"
+      },
+      "SkillDelegationReference": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Delegation",
+        "description": "Own freshly consented ags2 installed reference; C1 and no-Skill references refused"
+      }
+    }
+  },
+  "x-aegir-r012-complete": false,
+  "productionReleaseAuthorized": false
+}

@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+import foxlin_aegir_security as portable
 import unittest
 from dataclasses import asdict
 
@@ -29,7 +31,7 @@ NOW = "2026-04-07T15:00:00Z"
 
 class AegirSecurityClientTests(unittest.TestCase):
     def test_scan_identity(self):
-        client = AegirSecurityClient(base_url="https://example.test/apis", transport=self._transport)
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,base_url="https://example.test/apis", transport=self._transport)
         result = client.scanIdentity("developer:dev_123")
         self.assertEqual("developer:dev_123", result.subjectId)
         self.assertEqual("graph:developer:dev_123", result.graph.graphId)
@@ -46,7 +48,7 @@ class AegirSecurityClientTests(unittest.TestCase):
             captured["headers"] = headers
             return 200, self._scan_payload()
 
-        client = AegirSecurityClient(
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,
             base_url="https://example.test/apis",
             config_key="config-key",
             developer_key="developer-key",
@@ -54,7 +56,7 @@ class AegirSecurityClientTests(unittest.TestCase):
         )
 
         client.scanIdentity("developer:dev_123")
-        self.assertEqual("config-key", captured["headers"]["X-Aegir-Config-Key"])
+        self.assertNotIn("X-Aegir-Config-Key", captured["headers"])
         self.assertEqual("developer-key", captured["headers"]["X-Aegir-Developer-Key"])
 
     def test_perform_action_posts_json(self):
@@ -65,7 +67,7 @@ class AegirSecurityClientTests(unittest.TestCase):
             captured["body"] = json.loads(body)
             return 200, self._action_payload()
 
-        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,base_url="https://example.test/apis", transport=transport)
         client.performAction(
             PerformIdentityActionRequest(
                 subjectId="developer:dev_123",
@@ -76,10 +78,10 @@ class AegirSecurityClientTests(unittest.TestCase):
         )
 
         self.assertEqual("POST", captured["method"])
-        self.assertEqual("VerifyConnection", captured["body"]["actionType"])
+        self.assertEqual(3, captured["body"]["actionType"])
 
     def test_raises_aegir_security_error(self):
-        client = AegirSecurityClient(base_url="https://example.test/apis", transport=lambda *_: (404, {"error": "not_found", "correlationId": "corr_123"}))
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,base_url="https://example.test/apis", transport=lambda *_: (404, {"error": "not_found", "correlationId": "corr_123"}))
         with self.assertRaises(AegirSecurityError) as context:
             client.getExposureSummary("developer:dev_123")
         self.assertEqual(404, context.exception.status)
@@ -91,7 +93,7 @@ class AegirSecurityClientTests(unittest.TestCase):
         metrics = []
         traces = []
 
-        client = AegirSecurityClient(
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,
             base_url="https://example.test/apis",
             diagnostics_hooks=AegirDiagnosticsHooks(log=logs.append, metric=metrics.append, trace=traces.append),
             transport=lambda *_: (200, self._graph_payload() | {"correlationId": "corr_diag"}),
@@ -154,12 +156,44 @@ class AegirSecurityClientTests(unittest.TestCase):
         self.assertEqual("VerifyConnection", payload["actionHistory"][0]["actionType"])
         self.assertEqual("Completed", payload["actionHistory"][0]["status"])
 
-    def test_identity_token_signature_detects_tampering(self):
-        payload = b'{"userId":"user-1","trustLevel":4}'
-        signature = sign_identity_token_payload(payload)
-        self.assertEqual(64, len(signature))
-        self.assertTrue(verify_identity_token_payload(payload, signature))
-        self.assertFalse(verify_identity_token_payload(b'{"userId":"user-2","trustLevel":4}', signature))
+    def test_r004_shared_sha256_vectors_are_integrity_only(self):
+        vectors = json.loads((Path(__file__).parent / "crypto-vectors.json").read_text())
+        for vector in vectors["sha256"]:
+            self.assertEqual(vector["digest"], portable.compute_payload_digest(bytes.fromhex(vector["hex"])))
+        self.assertNotEqual(portable.compute_payload_digest(b'{"a":1,"b":2}'), portable.compute_payload_digest(b'{"b":2,"a":1}'))
+
+    def test_r004_legacy_signers_refuse_and_verifiers_reject_every_artifact(self):
+        fixtures = json.loads((Path(__file__).parent / "crypto-vectors.json").read_text())["historicalKeyless"]
+        payload = bytes.fromhex(fixtures["payloadHex"])
+        for kind, key in [("challenge", "challenge"), ("proof_receipt", "proofReceipt"), ("identity_token", "identityToken")]:
+            with self.assertRaises(NotImplementedError):
+                getattr(portable, f"sign_{kind}_payload")(payload)
+            legacy = bytes.fromhex(fixtures[key])
+            for artifact in [legacy, b"", bytes(64), legacy + b"x", None]:
+                self.assertFalse(getattr(portable, f"verify_{kind}_payload")(payload, artifact))
+
+    def test_r004_envelope_never_authenticates_legacy_or_fabricated_signatures(self):
+        unsigned = portable.validate_safe_envelope(portable.create_safe_envelope("test", "abc"))
+        self.assertTrue(unsigned.isValid)
+        self.assertFalse(unsigned.isAuthenticated)
+        self.assertEqual("integrity_only", unsigned.reason)
+        fixtures = json.loads((Path(__file__).parent / "crypto-vectors.json").read_text())["historicalKeyless"]
+        for algorithm in ["ML-DSA-65", "hybrid-beta1", "", "invalid"]:
+            for key in ["unknown", "substituted-device", ""]:
+                for artifact in [b"", bytes.fromhex(fixtures["challenge"]), bytes(3309)]:
+                    proof = portable.TrustCoreSignatureEnvelope(key, portable.TrustCoreAlgorithmDescriptor(algorithm, True), artifact)
+                    result = portable.validate_safe_envelope(portable.create_safe_envelope("test", "abc", proof))
+                    self.assertFalse(result.isValid)
+                    self.assertFalse(result.isAuthenticated)
+                    self.assertEqual("unsupported_signature", result.reason)
+
+    def test_r004_in_process_queue_rejects_fabricated_signature(self):
+        queue = portable.InMemoryAgentToAgentProtocol()
+        proof = portable.TrustCoreSignatureEnvelope("unknown", portable.TrustCoreAlgorithmDescriptor("ML-DSA-65", False), bytes(3309))
+        message = queue.send("agent:sender", "agent:recipient", "test", "abc", None, proof)
+        result = queue.receive("agent:recipient", message.messageId)
+        self.assertFalse(result.accepted)
+        self.assertEqual("unsupported_signature", result.reason)
 
     def _transport(self, url, method, headers, body):
         if url.endswith("/v1/security/scan/developer%3Adev_123"):
@@ -269,15 +303,17 @@ class AegirAiSurfaceTests(unittest.TestCase):
             captured["method"] = method
             captured["headers"] = headers
             captured["body"] = json.loads(body) if body else None
+            if "/transactions/" in url and isinstance(payload,dict) and "access_token" in payload:
+                return 200, {"transactionId":"AGTX-0011","tenantId":"tenant_test","callerPrincipalType":"Agent","callerPrincipalId":"agt_1","declaredAction":"ai.provider.invoke","authorizationDecision":"Pending","status":"Created"}
             return status, payload if payload is not None else {}
 
         return transport, captured
 
     def test_create_transaction_posts_the_declared_action(self):
         transport, captured = self._recording_transport(
-            payload={"transactionId": "AGTX-0011", "status": "Created"}
+            status=201, payload={"transactionId": "AGTX-0011", "tenantId":"tenant_test", "callerPrincipalType":"Agent", "callerPrincipalId":"agt_1", "declaredAction":"ai.provider.invoke", "authorizationDecision":"Pending", "status": "Created"}
         )
-        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,base_url="https://example.test/apis", transport=transport)
 
         result = client.createTransaction("ai.provider.invoke", targetResourceId="res_1")
 
@@ -289,9 +325,9 @@ class AegirAiSurfaceTests(unittest.TestCase):
 
     def test_agent_key_grant_presents_the_key_then_uses_the_bearer_token(self):
         transport, captured = self._recording_transport(
-            payload={"access_token": "agent.token.value", "token_type": "Bearer", "scopes": []}
+            payload={"access_token": "agent.token.value", "token_type": "Bearer", "expires_in":1800, "expires_at":"2099-01-01T00:00:00Z", "scope":"", "tenant_id":"tenant_test", "subject":"agt_1", "scopes": []}
         )
-        client = AegirSecurityClient(
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,
             base_url="https://example.test/apis", developer_key="dev_1:secret", transport=transport
         )
 
@@ -301,7 +337,7 @@ class AegirAiSurfaceTests(unittest.TestCase):
         self.assertEqual(captured["body"]["grantType"], "agent_key")
 
         # From here the agent token is the credential. The developer key must not keep
-        # travelling alongside it — a request carrying both would authenticate as the wrong
+        # travelling alongside it â€” a request carrying both would authenticate as the wrong
         # principal, and the agent's narrower scopes would be silently bypassed.
         client.getTransaction("AGTX-0011")
         self.assertEqual(captured["headers"]["Authorization"], "Bearer agent.token.value")
@@ -309,9 +345,9 @@ class AegirAiSurfaceTests(unittest.TestCase):
 
     def test_send_agent_message_posts_transaction_recipient_action_and_payload(self):
         transport, captured = self._recording_transport(
-            payload={"transactionId": "AGTX-0011", "envelope": {"envelopeId": "env_1"}}
+            payload={"transactionId": "AGTX-0011", "envelope": {"envelopeId": "env_1", "header":{"transactionId":"AGTX-0011","recipientPrincipalId":"agt_beta","action":"agent.finding.share"},"kemCiphertext":"AA==","aeadNonce":"AA==","ciphertext":"AA==","tag":"AA==","signature":"AA=="}}
         )
-        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,base_url="https://example.test/apis", transport=transport)
 
         client.sendAgentMessage("AGTX-0011", "agt_beta", "agent.finding.share", "cGF5bG9hZA==")
 
@@ -337,7 +373,7 @@ class AegirAiSurfaceTests(unittest.TestCase):
                 "revokedAtUtc": None,
             }
         )
-        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,base_url="https://example.test/apis", transport=transport)
 
         binding = client.bindProvider(
             "agt_1", "openai", "sk-secret", allowedModelIds=["gpt-4o-mini"]
@@ -367,7 +403,7 @@ class AegirAiSurfaceTests(unittest.TestCase):
                 "errorRetryable": True,
             }
         )
-        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,base_url="https://example.test/apis", transport=transport)
 
         result = client.invokeProvider(
             "AGTX-0011", "openai", "gpt-4o-mini", [{"role": "user", "content": "hi"}]
@@ -386,7 +422,7 @@ class AegirAiSurfaceTests(unittest.TestCase):
         transport, _ = self._recording_transport(
             status=403, payload={"error": "envelope_rejected", "status": "Replayed"}
         )
-        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,base_url="https://example.test/apis", transport=transport)
 
         with self.assertRaises(AegirSecurityError) as caught:
             client.receiveAgentMessage({"transactionId": "AGTX-0011", "envelope": {}})
@@ -396,7 +432,7 @@ class AegirAiSurfaceTests(unittest.TestCase):
 
     def test_known_error_codes_still_resolve_to_the_enum(self):
         transport, _ = self._recording_transport(status=403, payload={"error": "forbidden"})
-        client = AegirSecurityClient(base_url="https://example.test/apis", transport=transport)
+        client = AegirSecurityClient(allow_trusted_custom_transport=True,base_url="https://example.test/apis", transport=transport)
 
         with self.assertRaises(AegirSecurityError) as caught:
             client.getTransaction("AGTX-0011")

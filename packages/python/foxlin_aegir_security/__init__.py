@@ -1,4 +1,6 @@
 from .client import AegirDiagnosticsHooks, AegirSecurityClient
+from .integration import (AegirIntegrationClient, AegirIntegrationError, AegirMfaRequired,
+                          AuthorizationJournal, SqliteAuthorizationJournal)
 from .errors import AegirErrorCode, AegirSecurityError
 from .models import (
     ExposureFindingCategory,
@@ -30,6 +32,7 @@ from .portable import (
     TrustCoreAlgorithmDescriptor,
     TrustCoreSignatureEnvelope,
     create_safe_envelope,
+    compute_payload_digest,
     sign_challenge_payload,
     sign_identity_token_payload,
     sign_proof_receipt_payload,
@@ -40,6 +43,11 @@ from .portable import (
 )
 
 __all__ = [
+    "AegirIntegrationClient",
+    "AegirIntegrationError",
+    "AegirMfaRequired",
+    "AuthorizationJournal",
+    "SqliteAuthorizationJournal",
     "AegirSecurityClient",
     "AegirDiagnosticsHooks",
     "AegirSecurityError",
@@ -71,6 +79,7 @@ __all__ = [
     "TrustCoreAlgorithmDescriptor",
     "TrustCoreSignatureEnvelope",
     "create_safe_envelope",
+    "compute_payload_digest",
     "sign_challenge_payload",
     "sign_identity_token_payload",
     "sign_proof_receipt_payload",

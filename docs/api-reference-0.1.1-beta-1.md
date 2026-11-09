@@ -256,20 +256,21 @@ Public operations:
 
 Models:
 
-- `TrustCoreAlgorithmDescriptor`: `name`, `version`, `parameters`.
-- `TrustCoreSignatureEnvelope`: `classicalAlgorithm`, `postQuantumAlgorithm`, `classicalSignature`, `postQuantumSignature`, `metadata`.
+- `TrustCoreAlgorithmDescriptor`: Node/Java/Python/Go use `algorithmId`, `hybrid`; .NET uses `AlgorithmId`, `AlgorithmVersion`, `ProtectionMode`, `IntendedKeyUse`. These historical metadata shapes differ and confer no authority.
+- `TrustCoreSignatureEnvelope`: `keyId`, `algorithm`, `signatureBytes`; retained for decoding, always rejected by portable validation.
 - `SafeEnvelopeRecord`: `envelopeId`, `payloadType`, `canonicalPayload`, `payloadHash`, `createdAtUtc`, nullable `signatureEnvelope`.
-- `SafeEnvelopeValidationResult`: `isValid`, `reason`, `payloadHash`.
+- `SafeEnvelopeValidationResult`: `isValid`, `reason`, and false authentication indicator (`isAuthenticated` / Java `isAuthenticated()`).
 
-### Trust-Core Helpers
+### Integrity Utility and Retired Trust-Core Helpers
 
-Public operations:
+`computePayloadDigest` / Java `PortableSecurity.computePayloadDigest` /
+`compute_payload_digest` / `ComputePayloadDigest` accepts exact bytes and returns lowercase
+SHA-256 hex. It does not sign, normalize JSON, authenticate or authorize.
 
-- Challenge payload: sign and verify.
-- Proof-receipt payload: sign and verify. *(deprecated: keyless digest, not proof of possession - Aegir signs receipts with ML-DSA-65 server-side)*
-- Identity-token payload: sign and verify.
-
-Input shape is bytes in C#, TypeScript, Java, Python, and Go. Return shape is bytes for sign operations and boolean for verify operations.
+The old challenge, proof-receipt and identity-token sign/verify names are deprecated stubs:
+sign throws (Go panics) and verify always returns false. Any claimed signature in a local safe
+envelope is rejected as `unsupported_signature`; a matching unsigned hash is `integrity_only`
+with false authentication indicator. See [the compatibility contract](cryptographic-contracts-rc1.md).
 
 ## Budget
 
@@ -310,4 +311,4 @@ Receive reasons:
 - `accepted`
 - `message_not_found`
 - `payload_hash_mismatch`
-- `signature_missing`
+- `unsupported_signature`

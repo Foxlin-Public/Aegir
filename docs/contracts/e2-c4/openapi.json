@@ -1,0 +1,503 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Aegir E2-C4 Authorization/RBAC Skill source contract",
+    "version": "c4-source-v1",
+    "description": "Unreleased source contract; exact current consenting-Human canonical permission observation, not a grant. Source-bound execution receipts govern acceptance; no publication/deployment authorization."
+  },
+  "paths": {
+    "/v1/skills/v2/authorization-inspection": {
+      "post": {
+        "operationId": "api_post_v1_skills_v2_authorization_inspection",
+        "summary": "Observe one current permission for the original consenting Human on an exact installed group/application resource",
+        "x-aegir-host": "api",
+        "x-aegir-authorization": "Current Agent and exact ags2 installed chain, current original Human/scoped administrative inspection source/session, approved Skill+installation+policy, finite reserved uses; current canonical business decision is independent of inspecting rights.",
+        "x-aegir-idempotency": "durable exact operationId; duplicate no second private result; changed intent conflicts; explicit status only protected nonsecret truth",
+        "x-aegir-limits": "strict12fields,4096request,16384response,32policy supported profile,finite reserved quotas,no-refund,no-pruning",
+        "security": [
+          {
+            "AgentKey": [],
+            "InstalledDelegation": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorizationExecutionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bounded canonical current permission observation or nonsecret durable reconciliation; never a durable authorization grant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorizationExecutionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid strict supported operation contract"
+          },
+          "403": {
+            "description": "Current authority or profile refused"
+          },
+          "409": {
+            "description": "Immutable operation/revision conflict"
+          },
+          "503": {
+            "description": "Unverifiable current authority; reconcile original operation, never infer Abort"
+          },
+          "429": {
+            "description": "Bounded retained history or use capacity refusal; no eviction or inferred Abort"
+          }
+        },
+        "x-aegir-organization-context": "Original current consenting Human only, exact selected organization/group/application; conservative single-group profile. Other active group policies yield Unsupported rather than combining unrelated permissions.",
+        "x-aegir-identity-type": "Current authenticated Agent with exact installed ags2_ root/child delegation; original current Human consent, every ancestor, approval and installation pins required. Developer credentials do not establish Human presence.",
+        "x-aegir-license": "Current application license is part of the observed business decision; license removal can yield Denied while independently scoped inspection authority remains valid."
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AgentKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Agent-Key"
+      },
+      "InstalledDelegation": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Delegation"
+      }
+    },
+    "schemas": {
+      "AuthorizationExecutionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "execute",
+              "status"
+            ]
+          },
+          "operationId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "skillKey": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "skillVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "manifestDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "adapterDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "resourcePolicy": {
+            "type": "string",
+            "const": "application.group.authorization-inspection.read"
+          },
+          "resourceAlias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "scope": {
+            "type": "string",
+            "const": "security:read"
+          },
+          "operation": {
+            "type": "string",
+            "const": "application.group.authorization.inspect"
+          },
+          "targetPrincipalId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+            "description": "Must equal exact original consenting Human; never an arbitrary principal lookup."
+          },
+          "permission": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ]
+          }
+        },
+        "required": [
+          "action",
+          "operationId",
+          "skillKey",
+          "skillVersion",
+          "manifestDigest",
+          "adapterDigest",
+          "resourcePolicy",
+          "resourceAlias",
+          "scope",
+          "operation",
+          "targetPrincipalId",
+          "permission"
+        ]
+      },
+      "AuthorizationInspection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "aegir.skill.authorization-inspection-output/v1"
+          },
+          "resourceAlias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "operation": {
+            "const": "application.group.authorization.inspect"
+          },
+          "principalScope": {
+            "const": "consenting-human-only"
+          },
+          "permission": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ]
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "Allowed",
+              "Denied",
+              "Unsupported",
+              "Indeterminate"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "permission_granted",
+              "permission_not_granted",
+              "license_required",
+              "group_access_required",
+              "resource_not_current",
+              "single_group_profile_required",
+              "canonical_state_unverifiable"
+            ]
+          },
+          "authority": {
+            "const": "canonical-current-engine"
+          },
+          "observationOnly": {
+            "const": true
+          },
+          "authorityGranted": {
+            "const": false
+          }
+        },
+        "required": [
+          "schema",
+          "resourceAlias",
+          "operation",
+          "principalScope",
+          "permission",
+          "decision",
+          "reason",
+          "authority",
+          "observationOnly",
+          "authorityGranted"
+        ],
+        "oneOf": [
+          {
+            "properties": {
+              "decision": {
+                "const": "Allowed"
+              },
+              "reason": {
+                "enum": [
+                  "permission_granted"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "decision": {
+                "const": "Denied"
+              },
+              "reason": {
+                "enum": [
+                  "permission_not_granted",
+                  "license_required",
+                  "group_access_required",
+                  "resource_not_current"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "decision": {
+                "const": "Unsupported"
+              },
+              "reason": {
+                "enum": [
+                  "single_group_profile_required"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "decision": {
+                "const": "Indeterminate"
+              },
+              "reason": {
+                "enum": [
+                  "canonical_state_unverifiable"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "AuthorizationExecutionResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "ExecutedAuthorizationInspection",
+              "AlreadyConsumed",
+              "CommittedRead",
+              "Unknown/recovery-required",
+              "Expired",
+              "Suspended",
+              "Revoked",
+              "UseLimitExhausted"
+            ]
+          },
+          "executionId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "grantId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isReplay": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthorizationInspection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resultDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "response_prepared_client_receipt_unproven",
+              "client_receipt_unproven"
+            ]
+          }
+        },
+        "required": [
+          "outcome",
+          "executionId",
+          "grantId",
+          "isReplay",
+          "metadata",
+          "resultDigest",
+          "delivery"
+        ]
+      },
+      "AuthorizationExecutionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "type": "string",
+            "const": "aegir.authorization-skill.execution/v1"
+          },
+          "result": {
+            "$ref": "#/components/schemas/AuthorizationExecutionResult"
+          }
+        },
+        "required": [
+          "schema",
+          "result"
+        ]
+      },
+      "AuthorizationSkillManifest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "type": "string",
+            "const": "aegir.skill-manifest/v1"
+          },
+          "skillId": {
+            "type": "string",
+            "const": "aegir.authorization.scoped-inspection"
+          },
+          "family": {
+            "const": "authorization-rbac"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[A-Za-z0-9.-]+)?$",
+            "maxLength": 64
+          },
+          "publisher": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "application": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]{1,128}$"
+          },
+          "organization": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "adapter": {
+            "type": "string",
+            "const": "foxlin.builtin.authorization-inspection.v1"
+          },
+          "adapterDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "resource": {
+            "type": "string",
+            "const": "application.group.authorization-inspection.read"
+          },
+          "scopes": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "security:read"
+              }
+            ],
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "sideEffects": {
+            "type": "string",
+            "const": "none"
+          },
+          "inputSchema": {
+            "type": "string",
+            "const": "aegir.skill.authorization-inspection-input/v1"
+          },
+          "outputSchema": {
+            "type": "string",
+            "const": "aegir.skill.authorization-inspection-output/v1"
+          },
+          "maximumInputBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "maximumOutputBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "maximumMilliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5000
+          },
+          "humanAssurance": {
+            "type": "string",
+            "const": "totp.consent"
+          },
+          "approvalPolicy": {
+            "type": "string",
+            "const": "CurrentPlatformReviewAndApprovalThenScopedHumanEnablement"
+          },
+          "runtimeCompatibility": {
+            "type": "string",
+            "const": "aegir.c4.builtin-authorization-inspection/v1"
+          },
+          "expiresAt": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 253402300799
+          }
+        },
+        "required": [
+          "schema",
+          "skillId",
+          "family",
+          "version",
+          "publisher",
+          "application",
+          "organization",
+          "description",
+          "adapter",
+          "adapterDigest",
+          "resource",
+          "scopes",
+          "sideEffects",
+          "inputSchema",
+          "outputSchema",
+          "maximumInputBytes",
+          "maximumOutputBytes",
+          "maximumMilliseconds",
+          "humanAssurance",
+          "approvalPolicy",
+          "runtimeCompatibility",
+          "expiresAt"
+        ],
+        "description": "Additive exact C3 profile for existing versioned registry contract; actual loaded Auth artifact requires separate current platform review/approval and scoped enablement. Delimiter IDs are unsupported; exact current namespace/permission proof required."
+      }
+    }
+  }
+}

@@ -1,5 +1,11 @@
 # Aegir SDK
 
+> **RC1 source update (unreleased):** retired keyless signing now fails closed. Local helpers
+> provide SHA-256 integrity only; they cannot authenticate an identity. See the
+> [cryptographic compatibility contract](docs/cryptographic-contracts-rc1.md) and
+> [SDK manifest](sdk-manifest.json) for current source and registry distinctions.
+
+
 This is the standalone Beta-1 SDK repository for Aegir Security.
 
 Aegir is Foxlin Industries' identity, authentication and authorization engine. It issues scoped, expiring access tokens; gives an AI agent a first-class identity of its own, distinct from the developer key that manages it; records security operations as hash-chained transactions; and returns ML-DSA-65 signed receipts that verify independently of the service that issued them. Applications call it to answer who a caller is, what they may do, and what they did.
@@ -186,3 +192,7 @@ This repo does not include:
 - unpublished admin or operator-only capabilities
 - Beta-2 features
 - release-channel recommendations beyond the current Beta-1 packages and examples in this repo
+
+## Unreleased developer integration v1
+
+Shelf D adds source-only current authorization and event clients for .NET, TypeScript/JavaScript, Python, Java and Go. See [the integration guide](docs/developer-integration-v1.md) for supported limits, native build instructions, durable journals, reauthentication, recovery and the independent application-commit boundary. No package release or production deployment is implied; registry facts remain in `sdk-manifest.json`.

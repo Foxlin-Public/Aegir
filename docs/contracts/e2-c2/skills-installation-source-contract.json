@@ -1,0 +1,124 @@
+{
+  "owner": "Foxlin Industries",
+  "packet": "E2-C2",
+  "distribution": "unreleased source only; no package/version publication",
+  "classification": "scoped_installation_relationship_only",
+  "physicalArtifactRemoval": false,
+  "operations": [
+    "POST /v1/skills/v2/installations",
+    "POST /v1/delegations/v4/root-t1",
+    "POST /v1/delegations/v4/child"
+  ],
+  "management": {
+    "principal": "current authenticated Human owner or exact organization/group administrative source; never Developer or Agent",
+    "freshFactor": "purpose-bound current TOTP for new mutations; status/inspect are read-only",
+    "purposes": "skills:installation:<action>:v1",
+    "states": [
+      "InstallationRequested",
+      "Validated",
+      "Installed",
+      "Enabled",
+      "Suspended",
+      "UninstallRequested",
+      "Uninstalled",
+      "ReinstallationRequested",
+      "Reinstalled"
+    ],
+    "identity": "server-generated immutable GUID; operationId is separate and retained before submission",
+    "terminal": "Uninstalled never reenabled; explicit reinstall/upgrade creates new installation identity",
+    "replay": "exact same original actor/operation/intent; current state accompanies original immutable outcome; no new credentials",
+    "status": "original mutation operationId + current original actor/scope; Unknown/recovery-required never Abort"
+  },
+  "authorityDistinctions": [
+    "publisher registration",
+    "independent current-artifact source review",
+    "version approval",
+    "current Human/organization enablement",
+    "installation relationship",
+    "installation enablement",
+    "fresh installed Skill Human consent",
+    "current administrative root approval",
+    "current finite Agent-chain authority"
+  ],
+  "installedConsent": {
+    "purpose": "delegation.installed-skill-consent/v1",
+    "policyVersion": "c2.skill-intent.v1",
+    "backendInstallationIdField": "installationId",
+    "skillInstanceField": "skillInstallationId",
+    "digestDomain": "Foxlin.Aegir/installed-skill-consent-intent/v2",
+    "activationSchema": "aegir.installed-skill-chain-root-t1/v4",
+    "approvalPurpose": "delegation:installed-skill-chain-policy:approve:v1",
+    "consentPurpose": "delegation:installed-skill-chain-root:consent:v1",
+    "exposure": "foundational Human consent/policy workflows exercised through genuine canonical reference Probe contracts; full public Human issuance journey remains unaccepted",
+    "c1Compatibility": "existing C1 ags1 authority remains independent and cannot be adopted as installed ags2 authority"
+  },
+  "execution": {
+    "httpMcpTool": "skill_metadata_execute_v1",
+    "httpRegistry": 14,
+    "stdioRegistry": 12,
+    "credentialPrefix": "ags2_",
+    "sameExecutionSchema": "aegir.skill.execution/v1",
+    "currentChecks": [
+      "exact immutable Skill and artifact",
+      "current original management source",
+      "current version approval and enablement",
+      "current enabled installation approval operation",
+      "explicit target Agent set",
+      "current Human consent",
+      "current chain ancestry/application/resource authority",
+      "finite expiry/use quotas"
+    ],
+    "reconciliation": "own committed read returns only nonsecret truth and keyed resultDigest, never private output replay"
+  },
+  "capacity": {
+    "maximumInstallations": 32,
+    "operationRangePerInstallation": [
+      4,
+      32
+    ],
+    "permanentInstancesIncludeUninstalled": true,
+    "reservedTerminalOperations": 2,
+    "maximumEventsPerInstallation": 64,
+    "reservedTerminalEvents": 2,
+    "witnessRows": "1 + maximumInstallations * (65 + maximumOperations)",
+    "pruning": "none; retain immutable histories and fail closed at capacity"
+  },
+  "versionProfile": {
+    "maximumCharacters": 64,
+    "ordering": "strict SemVer core and prerelease numeric/lexical comparison; arbitrarily large numeric components within bounded input",
+    "initial": "ambiguous unsupported version forms refused",
+    "upgrade": "strictly greater approved current version and fresh identity",
+    "reinstall": "same or greater current approved version; retained overlapping histories prevent rollback"
+  },
+  "sdk": {
+    "dotnetInstalledFactory": "AegirSkillMcpClient.ForInstalledSkill",
+    "defaultConstructor": "C1 ags1 only",
+    "methods": [
+      "ExecuteAsync",
+      "ReconcileAsync"
+    ],
+    "typedManagementSdk": false,
+    "otherFourEcosystems": "raw contract only; no typed installation or installed Skill runtime acceptance",
+    "ambientFallback": false,
+    "automaticRetries": false
+  },
+  "families": {
+    "audit-troubleshooting": "reviewed built-in bounded metadata adapter only",
+    "authentication": "execution unavailable",
+    "authorization-rbac": "execution unavailable",
+    "mcp-security": "execution unavailable",
+    "agent-onboarding": "execution unavailable",
+    "secure-execution-receipt": "execution unavailable",
+    "organization-onboarding": "execution unavailable"
+  },
+  "originalDeferredScope": [
+    "six remaining family executors",
+    "external executable packaging/installation/removal",
+    "public Human issuance journeys",
+    "SDK package publication",
+    "operational disaster recovery",
+    "Human Eyes",
+    "external deployment"
+  ],
+  "productionRelease": "unauthorized"
+}

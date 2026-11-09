@@ -46,7 +46,7 @@ except AegirSecurityError as ex:
 
 ## API Reference
 
-See [Beta-1 API Reference](../../docs/api-reference-0.1.1-beta-1.md).
+See [Beta-1 API Reference](../../Docs/api-reference-0.1.1-beta.1.md).
 
 ## Supported Operations
 
@@ -57,7 +57,7 @@ See [Beta-1 API Reference](../../docs/api-reference-0.1.1-beta-1.md).
 - `performAction`
 - `reverseAction`
 - `getActionHistory`
-- portable crypto helpers
+- SHA-256 integrity helpers and deprecated fail-closed signing stubs
 - safe envelope helpers
 - `InMemoryBudgetEnvelopeService`
 - `InMemoryAgentToAgentProtocol`
@@ -80,3 +80,22 @@ Defaults:
 - `externalLookupLimit`: `50`
 - `connectionGraphRebuildLimit`: `10`
 - `windowMs`: `60000`
+
+## RC1 cryptographic compatibility — AEG-RC1-R004
+
+Unreleased source behavior: the six legacy keyless sign/verify helpers are deprecated. Sign
+always throws (Go panics); verify always returns false. The custom digest algorithm is removed.
+`computePayloadDigest` (`compute_payload_digest`, `ComputePayloadDigest`) is standard SHA-256
+over exact bytes, returning lowercase hex; it provides no authentication. Matching unsigned
+local envelopes report `integrity_only` and false authentication; every non-null signature
+envelope is rejected as `unsupported_signature`. Local A2A is a development queue, not identity
+or authorization. Use the existing keyed server/device contract for security-sensitive operations.
+These changes do not publish any package or complete native/hybrid interoperability.
+# Unreleased protocol-v1 integration
+
+See [INTEGRATION.md](INTEGRATION.md) for the additive current-authority client,
+SQLite event journal and runnable local JSON-lines example. Existing package
+versions and cryptographic APIs are unchanged; no publication is implied.
+
+
+Retained-client transport and compatibility corrections: [LEGACY-SECURITY.md](LEGACY-SECURITY.md).

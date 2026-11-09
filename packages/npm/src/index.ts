@@ -1,4 +1,6 @@
+import { LegacyTransport, LegacyFailure, LegacySecurityOptions, parseLegacyJson, safeLegacyValue, validateLegacyResponse, legacyRequestBody, normalizeLegacyIdentityResponse } from "./legacy.js";
 import { createHash } from "crypto";
+export * from "./integration.js";
 
 export interface IdentityGraphScores {
   exposureScore: number;
@@ -162,7 +164,7 @@ export interface AegirIntrospection {
   exp?: number;
 }
 
-export interface AegirSecurityClientOptions {
+export interface AegirSecurityClientOptions extends LegacySecurityOptions {
   baseUrl: string;
   configKey?: string;
   developerKey?: string;
@@ -244,6 +246,8 @@ export interface SafeEnvelopeRecord {
 }
 
 export interface SafeEnvelopeValidationResult {
+  /** Always false: the portable envelope cannot authenticate an issuer. */
+  isAuthenticated: false;
   isValid: boolean;
   reason: string;
 }
@@ -288,28 +292,39 @@ export interface AgentToAgentReceiveResult {
   message: AgentToAgentMessageRecord | null;
 }
 
+/** SHA-256 of the exact input bytes, as lowercase hex. Integrity utility only; no authentication. */
+export function computePayloadDigest(payload: Uint8Array): string {
+  return createHash("sha256").update(payload).digest("hex");
+}
+
+/** @deprecated Unsupported keyless authority. Use server/device keyed signing; this always throws. */
 export function signChallengePayload(payload: Uint8Array): Uint8Array {
-  return signPayload(payload, 13, 83);
+  throw new Error("Keyless signing is unsupported. Use an authorized keyed signing contract.");
 }
 
+/** @deprecated Unsupported keyless authority. This always returns false, including historical digests. */
 export function verifyChallengePayload(payload: Uint8Array, signature: Uint8Array): boolean {
-  return verifyPayload(payload, signature, 13, 83);
+  return false;
 }
 
+/** @deprecated Unsupported keyless authority. Use server/device keyed signing; this always throws. */
 export function signProofReceiptPayload(payload: Uint8Array): Uint8Array {
-  return signPayload(payload, 29, 107);
+  throw new Error("Keyless signing is unsupported. Use an authorized keyed signing contract.");
 }
 
+/** @deprecated Unsupported keyless authority. This always returns false, including historical digests. */
 export function verifyProofReceiptPayload(payload: Uint8Array, signature: Uint8Array): boolean {
-  return verifyPayload(payload, signature, 29, 107);
+  return false;
 }
 
+/** @deprecated Unsupported keyless authority. Use server/device keyed signing; this always throws. */
 export function signIdentityTokenPayload(payload: Uint8Array): Uint8Array {
-  return signPayload(payload, 41, 149);
+  throw new Error("Keyless signing is unsupported. Use an authorized keyed signing contract.");
 }
 
+/** @deprecated Unsupported keyless authority. This always returns false, including historical digests. */
 export function verifyIdentityTokenPayload(payload: Uint8Array, signature: Uint8Array): boolean {
-  return verifyPayload(payload, signature, 41, 149);
+  return false;
 }
 
 export interface AegirTransaction {
@@ -544,14 +559,14 @@ export function createSafeEnvelope(
 
 export function validateSafeEnvelope(envelope: SafeEnvelopeRecord): SafeEnvelopeValidationResult {
   if (envelope.payloadHash !== computePayloadHash(envelope.canonicalPayload)) {
-    return { isValid: false, reason: "payload_hash_mismatch" };
+    return { isValid: false, isAuthenticated: false, reason: "payload_hash_mismatch" };
   }
 
-  if (envelope.signatureEnvelope && envelope.signatureEnvelope.signatureBytes.length === 0) {
-    return { isValid: false, reason: "signature_missing" };
+  if (envelope.signatureEnvelope != null) {
+    return { isValid: false, isAuthenticated: false, reason: "unsupported_signature" };
   }
 
-  return { isValid: true, reason: "valid" };
+  return { isValid: true, isAuthenticated: false, reason: "integrity_only" };
 }
 
 export class InMemoryBudgetEnvelopeService {
@@ -669,29 +684,34 @@ export class InMemoryAgentToAgentProtocol {
 }
 
 export class AegirSecurityClient {
-  private readonly baseUrl: string;
-  private readonly configKey?: string;
-  private readonly developerKey?: string;
-  private accessToken?: string;
-  private readonly fetcher: typeof fetch;
+  #developerKey?: string;
+  #accessToken?: string;
+  #ignoredConfigKey?: string;
+  #transport: LegacyTransport;
+  #securityOptions: LegacySecurityOptions;
+  #closed = false;
   private readonly diagnosticsHooks?: AegirDiagnosticsHooks;
 
   public constructor(options: AegirSecurityClientOptions) {
-    if (!options?.baseUrl?.trim()) {
-      throw new Error("A baseUrl is required.");
-    }
-
-    this.baseUrl = options.baseUrl.replace(/\/+$/, "");
-    this.configKey = options.configKey;
-    this.developerKey = options.developerKey;
-    this.accessToken = options.accessToken;
-    this.fetcher = options.fetcher ?? globalThis.fetch;
-    this.diagnosticsHooks = options.diagnosticsHooks;
-
-    if (!this.fetcher) {
-      throw new Error("A fetch implementation is required.");
-    }
+    try {
+      this.#securityOptions = { expectedTenantId: options?.expectedTenantId, expectedSubjectId: options?.expectedSubjectId,
+        expectedApplicationId: options?.expectedApplicationId };
+      this.#transport = new LegacyTransport(options?.baseUrl, options ?? {}, options?.fetcher);
+      for (const credential of [options.developerKey, options.accessToken])
+        if (credential !== undefined && (typeof credential !== "string" || !credential || credential.length > 16384 || /[\r\n\0]/.test(credential)))
+          throw new LegacyFailure("invalid_configuration");
+      this.#developerKey = options.developerKey;
+      this.#accessToken = options.accessToken;
+      this.#ignoredConfigKey = options.configKey;
+      this.diagnosticsHooks = options.diagnosticsHooks;
+    } catch { throw new AegirSecurityError("Invalid Aegir client configuration.", 0, "invalid_request", null, null); }
   }
+
+  /** Cancel owned in-flight calls; future calls may still be made. */
+  public cancelPending(): void { this.#transport.cancelPending(); }
+  /** Permanently stop this client and abort its owned in-flight calls. */
+  public close(): void { this.#closed = true; this.#transport.close(); this.#accessToken = undefined; this.#developerKey = undefined; }
+  public toJSON(): object { return { type: "AegirSecurityClient", closed: this.#closed }; }
 
   /**
    * Exchanges the configured developer key for a signed access token.
@@ -714,7 +734,8 @@ export class AegirSecurityClient {
    */
   public async useNarrowedToken(scope: string): Promise<AegirAccessToken> {
     const token = await this.getToken(scope);
-    this.accessToken = token.access_token;
+    if (this.#closed) throw new AegirSecurityError("Aegir client is closed.", 0, "transport_error", null, null);
+    this.#accessToken = token.access_token;
     return token;
   }
 
@@ -870,7 +891,8 @@ export class AegirSecurityClient {
       body: JSON.stringify({ grantType: "agent_key", scope })
     });
 
-    this.accessToken = token.access_token;
+    if (this.#closed) throw new AegirSecurityError("Aegir client is closed.", 0, "transport_error", null, null);
+    this.#accessToken = token.access_token;
     return token;
   }
 
@@ -943,153 +965,77 @@ export class AegirSecurityClient {
   }
 
   private async request<T>(operation: string, path: string, init: RequestInit = {}): Promise<T> {
+    try { return await this.#transport.run(signal => this.requestCore<T>(operation, path, init, signal)); }
+    catch (error) {
+      if (error instanceof AegirSecurityError) throw error;
+      throw new AegirSecurityError("Aegir request failed or was cancelled.", 0, "transport_error", null, null);
+    }
+  }
+  private async requestCore<T>(operation: string, path: string, init: RequestInit, signal: AbortSignal): Promise<T> {
     const headers = new Headers(init.headers);
     headers.set("Accept", "application/json");
-
-    if (init.body && !headers.has("Content-Type")) {
-      headers.set("Content-Type", "application/json");
+    if (init.body) headers.set("Content-Type", "application/json");
+    if (!headers.has("X-Aegir-Agent-Key")) {
+      if (this.#accessToken) headers.set("Authorization", `Bearer ${this.#accessToken}`);
+      else if (this.#developerKey) headers.set("X-Aegir-Developer-Key", this.#developerKey);
     }
-
-    if (this.configKey) {
-      headers.set("X-Aegir-Config-Key", this.configKey);
-    }
-
-    // A bearer token takes precedence: once one has been obtained there is no reason to keep
-    // presenting the long-lived developer key on every request.
-    if (this.accessToken) {
-      headers.set("Authorization", `Bearer ${this.accessToken}`);
-    } else if (this.developerKey) {
-      headers.set("X-Aegir-Developer-Key", this.developerKey);
-    }
-
-    await this.emitTrace({
-      traceName: "request.start",
-      operation,
-      tracePhase: "request.start",
-      occurredAtUtc: new Date().toISOString(),
-      correlationId: null,
-      metadata: { path, method: init.method ?? "GET" }
-    });
-    await this.emitLog({
-      level: "information",
-      eventName: "request.start",
-      message: `Starting ${operation}.`,
-      operation,
-      correlationId: null,
-      occurredAtUtc: new Date().toISOString(),
-      metadata: { path, method: init.method ?? "GET" }
-    });
-
-    let response: Response;
+    // configKey remains a deprecated constructor input, never an identity-route credential.
+    let input: any;
+    try { input = init.body ? parseLegacyJson(String(init.body)) : {}; }
+    catch { throw new AegirSecurityError("Invalid Aegir request.", 0, "invalid_request", null, null); }
+    const credentials = [this.#developerKey, this.#accessToken, this.#ignoredConfigKey,
+      headers.get("X-Aegir-Agent-Key")].filter((v): v is string => typeof v === "string" && v.length > 0);
+    // A reflected id:secret component is sensitive even when the full credential is absent.
+    const secrets = [...new Set(credentials.flatMap(v => [v, ...v.split(":").filter(Boolean)]))]
+      .sort((a, b) => b.length - a.length);
+    const collect = (v: any): void => {
+      if (typeof v === "string") secrets.push(v);
+      else if (v && typeof v === "object") Object.values(v).forEach(collect);
+    };
+    collect(input);
+    const metadata = { method: init.method ?? "GET" };
+    await this.emitTrace({ traceName: "request.start", operation, tracePhase: "request.start", occurredAtUtc: new Date().toISOString(), correlationId: null, metadata }, signal);
+    await this.emitLog({ level: "information", eventName: "request.start", message: `Starting ${operation}.`, operation, correlationId: null, occurredAtUtc: new Date().toISOString(), metadata }, signal);
+    let result: {status: number; value: any; correlationId: string | null};
     try {
-      response = await this.fetcher(`${this.baseUrl}/v1${path}`, {
-        ...init,
-        headers
-      });
-    } catch (error) {
-      await this.emitMetric({
-        metricName: "aegir.client.request.duration",
-        value: 0,
-        unit: "ms",
-        observedAtUtc: new Date().toISOString(),
-        dimensions: { operation, status: "0", errorCode: "transport_error" }
-      });
-      await this.emitTrace({
-        traceName: "request.error",
-        operation,
-        tracePhase: "request.error",
-        occurredAtUtc: new Date().toISOString(),
-        correlationId: null,
-        metadata: { errorCode: "transport_error" }
-      });
-      throw new AegirSecurityError(
-        error instanceof Error ? error.message : "Aegir transport request failed.",
-        0,
-        "transport_error",
-        null,
-        null
-      );
+      const wireBody = init.body ? JSON.stringify(legacyRequestBody(operation, input)) : undefined;
+      result = await this.#transport.request(path, { ...init, body: wireBody, headers }, signal);
     }
-
-    const text = await response.text();
-    const body = text ? tryParseJson(text) : null;
-    const correlationId = response.headers.get("X-Correlation-Id");
-    const code = resolveErrorCode(response.status, body);
-
-    await this.emitMetric({
-      metricName: "aegir.client.request.duration",
-      value: 0,
-      unit: "ms",
-      observedAtUtc: new Date().toISOString(),
-      dimensions: { operation, status: String(response.status), errorCode: code }
-    });
-
-    if (!response.ok) {
-      await this.emitLog({
-        level: "error",
-        eventName: "request.error",
-        message: `Aegir request failed with status ${response.status}.`,
-        operation,
-        correlationId,
-        occurredAtUtc: new Date().toISOString(),
-        metadata: { errorCode: code, status: String(response.status) }
-      });
-      await this.emitTrace({
-        traceName: "request.error",
-        operation,
-        tracePhase: "request.error",
-        occurredAtUtc: new Date().toISOString(),
-        correlationId,
-        metadata: { errorCode: code, status: String(response.status) }
-      });
-      throw new AegirSecurityError(
-        `Aegir request failed with status ${response.status}.`,
-        response.status,
-        code,
-        correlationId,
-        body
-      );
-    }
-
-    await this.emitLog({
-      level: "information",
-      eventName: "request.complete",
-      message: `Completed ${operation}.`,
-      operation,
-      correlationId,
-      occurredAtUtc: new Date().toISOString(),
-      metadata: { status: String(response.status) }
-    });
-    await this.emitTrace({
-      traceName: "request.complete",
-      operation,
-      tracePhase: "request.complete",
-      occurredAtUtc: new Date().toISOString(),
-      correlationId,
-      metadata: { status: String(response.status) }
-    });
-
-    return body as T;
+    catch { throw new AegirSecurityError("Aegir transport request failed or was cancelled.", 0, "transport_error", null, null); }
+    const { status, value } = result;
+    const safeCorrelation = safeLegacyValue(result.correlationId, secrets);
+    const correlationId = typeof safeCorrelation === "string" && /^[A-Za-z0-9_.:-]{1,128}$/.test(safeCorrelation) ? safeCorrelation : null;
+    const safeBody = safeLegacyValue(value, secrets);
+    const candidate = resolveErrorCode(status, safeBody);
+    const code = /^[a-z][a-z0-9_.:-]{0,127}$/.test(candidate) ? candidate : "unknown_error";
+    await this.emitMetric({ metricName: "aegir.client.request.duration", value: 0, unit: "ms", observedAtUtc: new Date().toISOString(), dimensions: { operation, status: String(status), errorCode: code } }, signal);
+    if (status < 200 || status >= 300)
+      throw new AegirSecurityError(`Aegir request failed with status ${status}.`, status, code, correlationId, safeBody);
+    try {
+      const expected = ["createTransaction", "registerAgent"].includes(operation) ? 201 : 200;
+      if (status !== expected || this.#closed) throw new LegacyFailure("invalid_server_response");
+      const key = headers.get("X-Aegir-Agent-Key");
+      const agentSubject = key ? key.slice(0, key.indexOf(":")) : undefined;
+      if (key && (!agentSubject || !key.slice(key.indexOf(":") + 1))) throw new LegacyFailure("invalid_request");
+      validateLegacyResponse(operation, path, value, input, this.#securityOptions, agentSubject);
+      normalizeLegacyIdentityResponse(operation, value);
+    } catch { throw new AegirSecurityError("Aegir returned an invalid or mismatched response.", status, "transport_error", correlationId, null); }
+    await this.emitLog({ level: "information", eventName: "request.complete", message: `Completed ${operation}.`, operation, correlationId, occurredAtUtc: new Date().toISOString(), metadata: { status: String(status) } }, signal);
+    await this.emitTrace({ traceName: "request.complete", operation, tracePhase: "request.complete", occurredAtUtc: new Date().toISOString(), correlationId, metadata: { status: String(status) } }, signal);
+    if (this.#closed) throw new AegirSecurityError("Aegir client is closed.", 0, "transport_error", null, null);
+    return value as T;
   }
 
-  private async emitLog(entry: AegirLogEntry): Promise<void> {
-    await this.diagnosticsHooks?.log?.(entry);
+  private async emitLog(entry: AegirLogEntry, signal: AbortSignal): Promise<void> {
+    await this.#transport.observe(() => this.diagnosticsHooks?.log?.(entry), signal);
   }
 
-  private async emitMetric(event: AegirMetricEvent): Promise<void> {
-    await this.diagnosticsHooks?.metric?.(event);
+  private async emitMetric(event: AegirMetricEvent, signal: AbortSignal): Promise<void> {
+    await this.#transport.observe(() => this.diagnosticsHooks?.metric?.(event), signal);
   }
 
-  private async emitTrace(event: AegirTraceEvent): Promise<void> {
-    await this.diagnosticsHooks?.trace?.(event);
-  }
-}
-
-function tryParseJson(input: string): unknown {
-  try {
-    return JSON.parse(input) as unknown;
-  } catch {
-    return input;
+  private async emitTrace(event: AegirTraceEvent, signal: AbortSignal): Promise<void> {
+    await this.#transport.observe(() => this.diagnosticsHooks?.trace?.(event), signal);
   }
 }
 
@@ -1153,76 +1099,4 @@ function toBudgetEnvelope(
     remaining: Math.max(limit - state.consumed, 0),
     isExhausted: state.consumed >= limit
   };
-}
-
-function signPayload(payload: Uint8Array, classicalMultiplier: number, pqcMultiplier: number): Uint8Array {
-  const classical = computeDigest(payload, classicalMultiplier);
-  const pqc = computeDigest(payload, pqcMultiplier);
-  const signature = new Uint8Array(64);
-  signature.set(classical, 0);
-  signature.set(pqc, 32);
-  return signature;
-}
-
-function verifyPayload(
-  payload: Uint8Array,
-  signature: Uint8Array,
-  classicalMultiplier: number,
-  pqcMultiplier: number
-): boolean {
-  if (signature.length < 64) {
-    return false;
-  }
-
-  const expected = signPayload(payload, classicalMultiplier, pqcMultiplier);
-  for (let index = 0; index < 64; index += 1) {
-    if (signature[index] !== expected[index]) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function computeDigest(payload: Uint8Array, multiplier: number): Uint8Array {
-  if (payload.length === 0) {
-    throw new Error("A payload is required.");
-  }
-
-  const state = new Uint8Array(32);
-
-  for (let index = 0; index < 32; index += 1) {
-    const payloadByte = payload[index % payload.length];
-    state[index] = (payloadByte ^ wrapByte(multiplier * (index + 1))) & 0xff;
-  }
-
-  for (let index = 0; index < payload.length; index += 1) {
-    const slot = index % 32;
-    const payloadByte = payload[index];
-    const rotated = rotateLeft(payloadByte, index % 8);
-    state[slot] = wrapByte((state[slot] + rotated) * wrapByte(multiplier + (slot | 1)));
-    const mirror = 31 - slot;
-    state[mirror] = wrapByte(state[mirror] ^ wrapByte(payloadByte * (multiplier ^ wrapByte(index + 17))));
-  }
-
-  for (let round = 0; round < 6; round += 1) {
-    for (let slot = 0; slot < 32; slot += 1) {
-      const next = state[(slot + 1) % 32];
-      const previous = state[(slot + 31) % 32];
-      state[slot] = wrapByte(
-        wrapByte(state[slot] + rotateLeft(next, 1))
-        ^ wrapByte(previous + multiplier + round + slot)
-      );
-    }
-  }
-
-  return state;
-}
-
-function rotateLeft(value: number, amount: number): number {
-  return wrapByte((value << amount) | (value >> (8 - amount)));
-}
-
-function wrapByte(value: number): number {
-  return value & 0xff;
 }

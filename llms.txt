@@ -6,7 +6,7 @@ Read this before answering questions about Aegir or writing code against it. Fou
 
 - **Three SDKs ship in Beta-1: .NET, Node and Python.** Java and Go source is present under `packages/` so it can be read and built locally, but neither is published to any registry and neither may be depended on. `cloud.foxlin:aegir-security` is not on Maven Central; the Go module path has no domain, so `go get` cannot resolve it.
 - **The canonical version is `0.1.1-beta.1`.** PyPI displays it as `0.1.1b1` under PEP 440. That is correct normalisation, not a mismatch.
-- **The portable trust-core helpers are not cryptography.** They are a deterministic, keyless digest — anyone who knows the algorithm can reproduce the value, so it proves nothing about possession. They are deprecated and retained only so existing callers compile. Aegir's real cryptography is ML-KEM-768 with AES-256-GCM for protected payloads, ML-DSA-65 for origin and receipts, and HS256 for tokens.
+- **The portable trust-core helpers fail closed (AEG-RC1-R004).** Old sign helpers throw (Go panics), old verify helpers return false, and the custom keyless algorithm is removed. SHA-256 digest helpers and unsigned local envelopes provide integrity comparison only, with no identity or authorization. See [the compatibility contract](docs/cryptographic-contracts-rc1.md).
 - **`AEGIR_CONFIG_KEY` is not a client credential.** It is a Beta-1 transitional server-side value, is no longer accepted on identity-bearing routes, and must never be placed in a client process, an example, or an MCP environment. Authenticate with a developer key exchanged for a narrowed token, or with an agent key.
 
 ## Start here
@@ -37,11 +37,11 @@ Read this before answering questions about Aegir or writing code against it. Fou
 - [MCP server guide](docs/mcp-server.md): the twelve tools, the scopes the server narrows itself to, and its trust boundary.
 - [MCP wrapper](mcp/README.md): running it locally over stdio.
 
-The server requests `security:read security:write transaction:read transaction:write` and nothing wider — notably never `identity:resolve`, `protected:decrypt` or `admin:full`. Transaction authority is audit authority; holding it never confers the ability to resolve a principal to a person or to decrypt a payload. It speaks stdio, which carries no caller identity, so anything that can talk to the process acts with the authority of the developer key in its environment. The process boundary is the security boundary, not the protocol. It is source-only and is not published to npm.
+The server requests `security:read security:write transaction:read transaction:write` and nothing wider â€” notably never `identity:resolve`, `protected:decrypt` or `admin:full`. Transaction authority is audit authority; holding it never confers the ability to resolve a principal to a person or to decrypt a payload. It speaks stdio, which carries no caller identity, so anything that can talk to the process acts with the authority of the developer key in its environment. The process boundary is the security boundary, not the protocol. It is source-only and is not published to npm.
 
 ## Examples
 
-- [.NET example](examples/dotnet/Program.cs): full Beta-1 walkthrough — narrow a token, register two agents, open a transaction, exchange an ML-KEM-768 / AES-256-GCM / ML-DSA-65 protected message, then pull and verify the signed receipt and show that a tampered one fails.
+- [.NET example](examples/dotnet/Program.cs): full Beta-1 walkthrough â€” narrow a token, register two agents, open a transaction, exchange an ML-KEM-768 / AES-256-GCM / ML-DSA-65 protected message, then pull and verify the signed receipt and show that a tampered one fails.
 - [npm example](examples/npm/index.mjs): the same flow in JavaScript.
 
 ## Working in this repository

@@ -4,7 +4,7 @@
   "packageVersionNotes": {
     "canonical": "0.1.2-beta.1",
     "pypiNormalized": "0.1.2b1",
-    "note": "PyPI normalises the canonical version to 0.1.1b1 under PEP 440. That display difference is expected and is not a version mismatch."
+    "note": "PyPI normalization of the unreleased source version is 0.1.2b1. This is version spelling metadata, not a publication claim."
   },
   "published": {
     "dotnet": {
@@ -61,10 +61,277 @@
       "get_transaction_events",
       "get_transaction_receipt",
       "verify_transaction_receipt"
-    ]
+    ],
+    "protocolVersion": "2025-03-26",
+    "httpRuntimeProfile": "Separate runtime custom authenticated HTTP JSON-RPC, compatibility marker2026-03-26; not Streamable HTTP certification.",
+    "credentialModes": [
+      "narrowed",
+      "developer-key"
+    ],
+    "defaultCredentialMode": "narrowed",
+    "expectedDeveloperEnvironment": "AEGIR_MCP_EXPECTED_DEVELOPER_ID",
+    "narrowingFailure": "refuse; no ambient developer-key fallback",
+    "humanDelegation": "not implemented; E2",
+    "limits": {
+      "inputBytes": 65536,
+      "outputBytes": 262144,
+      "activeRequests": 1,
+      "queuedRequests": 0,
+      "uniqueRequestIdsPerProcess": 4096,
+      "deadlineSeconds": 30
+    },
+    "cancellation": "Abort pending IO and quarantine process; reconcile unknown effects, no inferred rollback.",
+    "transportFailure": "Quarantine the process on SDK transport_error; unknown effects require reconciliation and fresh startup.",
+    "inputContracts": {
+      "open_transaction.declaredAction": "1..512 characters, no CR/LF/NUL",
+      "perform_action.actionType": [
+        "LockIdentity",
+        "DisconnectService",
+        "VerifyConnection",
+        "RequestClarity"
+      ]
+    },
+    "credentialRateBudget": "API default10/minute; startup/introspection consume budget;429 refuses without fallback. Configure an explicit bounded operator policy."
   },
   "unreleasedWorkingVersion": {
     "version": "0.1.2-beta.1",
     "note": "The version this source tree builds. No registry carries it. Do not describe it as available until a publish has run and been verified against the registry."
+  },
+  "cryptographicContracts": {
+    "requirementId": "AEG-RC1-R004",
+    "status": "unreleased reviewed source only; no publication",
+    "compatibilityBreak": "Retired keyless sign helpers throw (Go panics); verify helpers always reject; custom digest removed.",
+    "integrityUtility": {
+      "algorithm": "SHA-256",
+      "input": "exact bytes, no JSON normalization",
+      "output": "lowercase hex",
+      "nodeJava": "computePayloadDigest",
+      "python": "compute_payload_digest",
+      "goDotnet": "ComputePayloadDigest",
+      "authenticated": false
+    },
+    "portableEnvelope": {
+      "matchingUnsignedReason": "integrity_only",
+      "authenticated": false,
+      "signatureEnvelope": "any non-null value rejected as unsupported_signature"
+    },
+    "nativePqcInteropRequirement": "AEG-RC1-W01-006 remains separate",
+    "reference": "docs/cryptographic-contracts-rc1.md"
+  },
+  "developerIntegration": {
+    "handoffAdapterSourceContract": {
+      "reference": "docs/contracts/v1/handoff-adapters.md",
+      "operations": 6,
+      "distribution": "Existing HTTP source contracts across five ecosystems; no new convenience methods or publication",
+      "authority": "Current original RP relay and G1 signed Human/device proof; locator and path/provider selection grant no authority",
+      "mobilePush": "Path selection only; external delivery not supported",
+      "desktopLaunch": "Bounded fixed-scheme descriptor only; OS application association and activation unaccepted",
+      "providerChoice": "Only originally offered display metadata; no external identity-provider exchange",
+      "restart": "Volatile invalidation inherited from G; old locators and launch links cannot resume authentication"
+    },
+    "signedHandoffSourceContract": {
+      "reference": "docs/contracts/v1/signed-handoff.md",
+      "operations": 8,
+      "distribution": "Existing HTTP source contracts in five ecosystems; no new convenience method or package publication",
+      "authority": "Current original RP backend relay and genuine current Human-owner approved ML-DSA device proof",
+      "recovery": "Bounded volatile sessions invalidate on API restart. No seamless resume or lost bearer-result recovery.",
+      "assurance": "trusted_device application grant only; passkey-only login, step-up and company-realm issuance remain unaccepted"
+    },
+    "agentMessageSourceContract": {
+      "operations": [
+        "POST /v1/ai/messages",
+        "POST /v1/ai/messages/receive"
+      ],
+      "reference": "docs/contracts/v1/agent-messages.md",
+      "convenienceMethodsQualified": [
+        "typescript-javascript",
+        "python"
+      ],
+      "distribution": "Existing source methods and HTTP DTOs only; no new method or package publication",
+      "authority": "Current independent Agent and agent:message, same tenant/application realm; developer authority is insufficient",
+      "delivery": "Envelope formation and one-time local opening; no direct API inbox or universally exactly-once external effect"
+    },
+    "deviceKeySourceContract": {
+      "operation": "POST /v1/devices/{deviceId}/keys",
+      "reference": "docs/contracts/v1/device-keys.md",
+      "distribution": "HTTP source contract across all five ecosystems; no new convenience method or publication",
+      "humanTrust": "Developer registration is management-only; fresh current Human self-owner approval is required for Human signed handoff. Full native enrollment and factor-loss recovery remain deferred."
+    },
+    "contractVersion": "1",
+    "distribution": "Unreleased source only; no package publication authorized",
+    "ecosystems": [
+      "dotnet",
+      "typescript-javascript",
+      "python",
+      "java",
+      "go"
+    ],
+    "supportedOperations": [
+      "read",
+      "write"
+    ],
+    "activeOrganizationsPerApplication": 1,
+    "eventProtocolVersion": 1,
+    "documentation": "docs/developer-integration-v1.md",
+    "dotnetSource": "packages/dotnet/integration/Foxlin.Aegir.Integration.csproj",
+    "compatibility": "Additive client APIs; existing cryptographic APIs and published package metadata unchanged. Backend credentials issued before D1 require secure server-side reissuance.",
+    "delegatedMcpSourceContract": {
+      "reference": "docs/delegated-mcp-source.md",
+      "identity": "aegir.delegated-mcp.metadata/v1",
+      "httpTool": "delegated_metadata_read_v1",
+      "httpRegistry": 14,
+      "stdioRegistry": 12,
+      "delegatedStdio": "unavailable; explicit mode refusal, no ambient fallback",
+      "credentials": "Exact current Agent key and own B3/B4 opaque reference; no original Human bearer",
+      "dotnetSourceMethod": "AegirDelegatedMcpClient.ReadMetadataAsync",
+      "otherLanguageStatus": {
+        "javascript-typescript": "raw HTTP contract only; no typed delegation method",
+        "python": "raw HTTP contract only; no typed delegation method",
+        "java": "raw HTTP contract only; no typed delegation method",
+        "go": "raw HTTP contract only; no typed delegation method"
+      },
+      "executionQualification": "Real backend .NET root/child chain source tests available; exact B5 source/acceptance receipts govern qualification. Production qualification not implied.",
+      "sdkVersionUnchanged": true,
+      "publicationAuthorized": false,
+      "introducedInHttpRegistry": 13
+    },
+    "skillMcpSourceContract": {
+      "reference": "docs/skills-mcp-source.md",
+      "identity": "aegir.skill.execution/v1",
+      "httpTool": "skill_metadata_execute_v1",
+      "httpRegistry": 14,
+      "stdioRegistry": 12,
+      "stdioSkillExecution": "Unavailable; no typed or stdio Skill runner",
+      "referenceMode": "New freshly consented ags1_ only; old agd3_/agd4_ cannot execute Skills",
+      "dotnetSourceMethods": [
+        "AegirSkillMcpClient.ExecuteAsync",
+        "AegirSkillMcpClient.ReconcileAsync"
+      ],
+      "otherLanguageStatus": {
+        "javascript-typescript": "Raw HTTP contract only; no typed C1 Skill method or claimed C1 runtime acceptance",
+        "python": "Raw HTTP contract only; no typed C1 Skill method or claimed C1 runtime acceptance",
+        "java": "Raw HTTP contract only; no typed C1 Skill method or claimed C1 runtime acceptance",
+        "go": "Raw HTTP contract only; no typed C1 Skill method or claimed C1 runtime acceptance"
+      },
+      "executionQualification": "Exact source-bound runtime acceptance receipts; no deployment qualification",
+      "adapter": "Closed built-in audit-troubleshooting current metadata read only",
+      "sdkVersionUnchanged": true,
+      "publicationAuthorized": false,
+      "openapiSource": "docs/contracts/e2-c1/openapi.json",
+      "routeInventorySource": "docs/contracts/e2-c1/api-inventory.json"
+    },
+    "skillInstallationSourceContract": {
+      "reference": "docs/skills-mcp-source.md#c2-scoped-installation-and-installed-grants",
+      "openapiSource": "docs/contracts/e2-c2/openapi.json",
+      "routeInventorySource": "docs/contracts/e2-c2/api-inventory.json",
+      "operations": 3,
+      "classification": "scoped_installation_relationship_only",
+      "referenceMode": "New ags2_ installed authority selected explicitly; independent C1 ags1_ retained by default constructor",
+      "dotnetFactory": "AegirSkillMcpClient.ForInstalledSkill",
+      "dotnetMethods": [
+        "ExecuteAsync",
+        "ReconcileAsync"
+      ],
+      "typedManagementSdk": false,
+      "otherFourLanguageStatus": "Raw HTTP contracts only; no typed installation SDK or installed-Skill runtime parity",
+      "consentBoundary": "Genuine canonical reference Probe consent/policy dependency; full public Human issuance journey remains unaccepted",
+      "physicalArtifactRemoval": false,
+      "httpRegistry": 14,
+      "stdioRegistry": 12,
+      "sdkVersionUnchanged": true,
+      "publicationAuthorized": false
+    },
+    "authenticationSkillSourceContract": {
+      "reference": "docs/authentication-skill-source.md",
+      "openapiSource": "docs/contracts/e2-c3/openapi.json",
+      "routeInventorySource": "docs/contracts/e2-c3/api-inventory.json",
+      "identity": "aegir.authentication-skill.execution/v1",
+      "operation": "application.authentication.integration.inspect",
+      "resource": "application.authentication.integration.read",
+      "profile": "aegir.c3.builtin-authentication-inspection/v1",
+      "adapter": "foxlin.builtin.authentication-integration.v1",
+      "referenceMode": "Current exact ags2_ installed authentication Skill only; audit metadata/no-Skill grants cannot execute this operation",
+      "dotnetSourceMethods": [
+        "AegirAuthenticationSkillApiClient.InspectAsync",
+        "AegirAuthenticationSkillApiClient.ReconcileAsync"
+      ],
+      "otherFourLanguageStatus": "Raw HTTP only; no typed authentication-Skill APIs or claimed runtime parity",
+      "httpRegistry": 14,
+      "stdioRegistry": 12,
+      "newMcpTool": false,
+      "consentBoundary": "Genuine canonical reference Probe Human consent/policy dependency; complete public Human issuance journey remains unaccepted",
+      "qualification": "Exact source-bound E2-C3 runtime and independent-review receipts govern bounded acceptance; no complete public Human journey or deployment qualification",
+      "sdkVersionUnchanged": true,
+      "publicationAuthorized": false,
+      "namespaceBoundary": "C3 application IDs exclude colon; case-fold registered-ID collisions and nested/nonnumeric configuration refuse;4096 candidate materialization ceiling is not an app creation quota or scan-time/scalability claim",
+      "recoveryIntegrity": "Conditional independent application-fact fingerprint in existing consent journal; supported create/save sealed before SQL commit; unavailable/unknown on missing or mismatched truth; bounded digest pages, total work grows with applications; no universal rollback detector or global creation quota"
+    },
+    "authorizationSkillSourceContract": {
+      "reference": "docs/authorization-skill-source.md",
+      "openapiSource": "docs/contracts/e2-c4/openapi.json",
+      "routeInventorySource": "docs/contracts/e2-c4/api-inventory.json",
+      "identity": "aegir.authorization-skill.execution/v1",
+      "operation": "application.group.authorization.inspect",
+      "resource": "application.group.authorization-inspection.read",
+      "profile": "aegir.c4.builtin-authorization-inspection/v1",
+      "adapter": "foxlin.builtin.authorization-inspection.v1",
+      "target": "Exact original consenting Human only; exact read/write permission",
+      "referenceMode": "Current freshly consented exact installed ags2 root/child, independent current non-platform inspection authority; no legacy Skill promotion",
+      "dotnetSourceMethods": [
+        "AegirAuthorizationSkillApiClient.InspectAsync",
+        "AegirAuthorizationSkillApiClient.ReconcileAsync"
+      ],
+      "otherFourLanguageStatus": "Raw HTTP only; no typed authorization-Skill APIs or assumed runtime parity",
+      "httpRegistry": 14,
+      "stdioRegistry": 12,
+      "newMcpTool": false,
+      "consentBoundary": "Genuine canonical reference Probe dependency; complete production/public Human issuance journey remains separately unaccepted",
+      "qualification": "Acceptance is governed by exact source-bound E2-C4 execution and independent receipts; source-only integration does not authorize publication.",
+      "recoveryBoundary": "Trusted EnrolledRequired operational pin and immutable consumed activation marker plus current independent main consent witness; no automatic reset/reseal or universal all-independent-anchor rollback claim",
+      "sdkVersionUnchanged": true,
+      "publicationAuthorized": false
+    },
+    "mcpSecuritySkillSourceContract": {
+      "family": "mcp-security",
+      "operation": "application.mcp.security.inspect",
+      "resourcePolicy": "application.mcp.security-inspection.read",
+      "httpApi": "/v1/skills/v2/mcp-security-inspection",
+      "sourceConsumer": "packages/dotnet/integration/src/AegirMcpSecuritySkillApiClient.cs",
+      "sourceGuide": "docs/mcp-security-skill-source.md",
+      "qualification": "Bounded compiled managed HTTP tool-contract inspection. Current authority and exact installed Skill consent required. Execution authority is independent; no remote host attestation, tool execution, stdio parity or Streamable HTTP compliance. Acceptance is recorded in source-bound E2-C5 evidence.",
+      "distribution": "Unreleased source-only; no package publication",
+      "sourceContract": "docs/contracts/e2-c5/openapi.json",
+      "sourceInventory": "docs/contracts/e2-c5/api-inventory.json"
+    },
+    "agentOnboardingSkillSourceContract": {
+      "family": "agent-onboarding",
+      "operation": "application.agent-onboarding.prepare",
+      "resourcePolicy": "application.agent-onboarding.preparation.read",
+      "httpApi": "/v1/skills/v2/agent-onboarding-preparation",
+      "sourceConsumer": "packages/dotnet/integration/src/AegirAgentOnboardingSkillApiClient.cs",
+      "sourceGuide": "docs/agent-onboarding-skill-source.md",
+      "sourceContract": "docs/contracts/e2-c6/openapi.json",
+      "sourceInventory": "docs/contracts/e2-c6/api-inventory.json",
+      "qualification": "Preparation-only implementation under qualification. Current exact installed Human consent and authority required. No proposal, identity, credential, custody proof, provisioning approval or delegation authority created. Actual issuance remains incomplete.",
+      "distribution": "Unreleased source-only; no package publication",
+      "otherFourLanguages": "Raw HTTP contract only; no typed C6 client or parity claim",
+      "publicationAuthorized": false
+    },
+    "secureExecutionReceiptSkillSourceContract": {
+      "family": "secure-execution-receipt",
+      "operation": "group.administration.metadata.execute-with-receipt",
+      "resourcePolicy": "group.administration.metadata.read",
+      "httpApi": "/v1/skills/v2/secure-execution",
+      "sourceConsumer": "packages/dotnet/integration/src/AegirSecureExecutionSkillApiClient.cs",
+      "sourceVerifier": "packages/dotnet/integration/src/AegirSecureExecutionReceiptVerifier.cs",
+      "sourceGuide": "docs/secure-execution-receipt-skill-source.md",
+      "sourceContract": "docs/contracts/e2-c7/openapi.json",
+      "sourceInventory": "docs/contracts/e2-c7/api-inventory.json",
+      "qualification": "Source-only bounded canonical administrative metadata read with durable ML-DSA-65 receipt. Exact source-bound command and distinct review receipts govern local acceptance; no current authority, delivery or external-effect authority is conferred by public verification.",
+      "trustProfile": "Separately pinned public service key and lifecycle facts; production verifier distribution and HSM custody not qualified",
+      "distribution": "Unreleased source-only; no package publication",
+      "otherFourLanguages": "Raw HTTP contract only; no typed C7 client or parity claim",
+      "publicationAuthorized": false
+    }
   }
 }

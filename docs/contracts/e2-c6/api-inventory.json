@@ -1,0 +1,23 @@
+{
+  "owner": "Foxlin Industries",
+  "scope": "E2-C6 preparation only; qualification pending",
+  "routes": [
+    {
+      "host": "api",
+      "method": "POST",
+      "path": "/v1/skills/v2/agent-onboarding-preparation",
+      "contractPath": "/v1/skills/v2/agent-onboarding-preparation",
+      "operationId": "api_post_v1_skills_v2_agent_onboarding_preparation",
+      "source": "Aegir/src/Foxlin.Aegir.Auth/Services/AgentOnboardingEndpoints.cs",
+      "classification": "restricted-c6-installed-agent-onboarding-preparation",
+      "schemaCoverage": "complete-supported-request-and-response",
+      "generalDeveloperApi": false
+    }
+  ],
+  "httpMcpRegistry": 14,
+  "stdioRegistry": 12,
+  "newMcpTool": false,
+  "newTypedDotnetSourceClient": "AegirAgentOnboardingSkillApiClient",
+  "otherTypedLanguages": false,
+  "publicationAuthorized": false
+}

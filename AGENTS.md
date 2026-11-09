@@ -14,7 +14,7 @@ documentation, examples, and a local stdio MCP wrapper.
 
 It is **not** the Aegir product runtime. The API host, database schema, migrations, deployment
 automation and internal admin code live elsewhere and are deliberately absent. If a task seems to
-require editing the server, the task is in the wrong repository — say so rather than approximating
+require editing the server, the task is in the wrong repository â€” say so rather than approximating
 the server here.
 
 ## Ownership and attribution
@@ -23,7 +23,7 @@ Every copyright notice, licence, footer and package manifest names **Foxlin Indu
 a Foxlin Industries engine.
 
 Do not attribute this work to any third party, jointly or otherwise. A joint copyright line is not
-cosmetic — it reads as a written admission of shared ownership. Treat a wrong or joint notice as a
+cosmetic â€” it reads as a written admission of shared ownership. Treat a wrong or joint notice as a
 release-blocking defect. Do not copy an entity name from a neighbouring file; if ownership is
 ambiguous, ask.
 
@@ -34,36 +34,12 @@ ambiguous, ask.
 `sdk-manifest.json` is the machine-readable source of truth. Where prose disagrees with it, the
 manifest wins and the prose is a bug.
 
-**Three SDKs ship: .NET, Node, Python.** Java and Go are source-only. Their code is here so it can
-be read and built locally; neither is published and neither may be presented as available.
-`cloud.foxlin:aegir-security` is not on Maven Central, and the Go module path has no domain, so
-`go get` cannot resolve it. Never write a Java or Go install instruction that implies otherwise —
-this was corrected once already, across the manifest, README, both integration guides and the
-installers.
+**Distribution follows sdk-manifest.json.** The current working source is `0.1.2-beta.1` (PyPI spelling `0.1.2b1`), unreleased in all five integration ecosystems. The manifest separately records historical published .NET/Node versions; Python/Java/Go are source-only according to that recorded metadata. Do not claim current registry availability without checking it. Do not rename versioned documentation filenames or change package versions for prose consistency.
 
-**The version is `0.1.1-beta.1`** — dot, lowercase, everywhere. Not `0.1.1-beta-1`, not
-`0.1.1-Beta.1`. The one exception is **documentation filenames**, which keep the hyphenated
-`-0.1.1-beta-1.md` form deliberately: renaming them would break every cross-link in the repository
-and any external bookmark, for no benefit. Change version strings inside those files; do not
-rename the files. PyPI reports `0.1.1b1`, which is correct PEP 440 normalisation and not a
-mismatch.
-
-**The portable trust-core helpers are not cryptography.** They are a deterministic, *keyless*
-digest whose algorithm is published here in five languages, so anyone can reproduce a value and it
-proves nothing about possession. They are deprecated, retained only so existing callers compile,
-and must never be described as authentication, signing or proof. Aegir's actual cryptography:
-
-| Purpose | Algorithm |
-|---|---|
-| Protected payloads | ML-KEM-768 key establishment, AES-256-GCM |
-| Origin and receipts | ML-DSA-65 |
-| Tokens | HS256 |
-
-Keep TLS and the envelope as separate claims. TLS protects the hop; the envelope protects the
-payload. Neither substitutes for the other.
+**Retired keyless helpers are not cryptography.** Signing helpers throw (Go panics), verification rejects and the custom digest is removed. The SHA-256 exact-byte integrity utility is unauthenticated. Native PQC interoperability remains separate. Existing actual crypto uses ML-KEM-768/AES-256-GCM protected payloads, ML-DSA-65 origins/receipts and HS256 tokens; TLS and envelope claims stay separate.
 
 **`AEGIR_CONFIG_KEY` is not a client credential.** It is a Beta-1 transitional server-side value,
-is no longer accepted on identity-bearing routes, and still opens pre-authentication routes — so
+is no longer accepted on identity-bearing routes, and still opens pre-authentication routes â€” so
 putting it in a client process is exposure with no benefit. It must not appear in examples, MCP
 environment files, documentation or tests. Authenticate with a developer key exchanged for a
 narrowed token, or with an agent key.
@@ -110,7 +86,7 @@ The .NET example is the cheapest guard against breaking the public surface: it r
 package rather than project source, so it fails to compile if something it uses stops being
 public. It once shipped broken with `error CS0122: 'IIdentitySecurityService' is inaccessible`.
 With no credentials configured it prints the available surface and exits, so it is useful as a
-compile check on its own. **Build it after any change to the .NET surface or its examples** — do
+compile check on its own. **Build it after any change to the .NET surface or its examples** â€” do
 not assume a documentation-only edit is safe until you have checked whether it contains code.
 
 `packages/python/tests/live_flow.py` talks to a real host and is not part of the offline suite.
@@ -141,7 +117,7 @@ hosted deployment, infrastructure automation, or MCP tools beyond the twelve in 
 - Publish a package, create a tag, or create a release. Releases are coordinated deliberately;
   `npm pack` and equivalents are fine for local validation.
 - Weaken a check to make something pass. If a test, gate or assertion fails, either fix the cause
-  or report it — never lower the bar to obtain green. A passing signal that no longer means
+  or report it â€” never lower the bar to obtain green. A passing signal that no longer means
   anything is worse than a failing one.
 - State that something builds, passes or is published without having verified it. Name the command
   you ran and what it printed. "Appears to work" is not a result.

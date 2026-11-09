@@ -1,5 +1,23 @@
 import assert from "node:assert/strict";
 import { handleMessage } from "../src/server.mjs";
+import { AegirSecurityClient, AegirSecurityError } from "../../packages/npm/dist/esm/index.js";
+
+// Complete canonical synthetic DTOs for the actual hardened client boundary.
+// These adapters supply test data only; no network or positive server authority is involved.
+function scanPayload(subjectId) {
+  const now = new Date().toISOString(), graphId = `graph:user:${subjectId}`;
+  return {
+    subjectId,
+    graph: {
+      graphId, generatedAtUtc: now,
+      nodes: [{ nodeId: `user:${subjectId}`, nodeType: 6, displayName: "Synthetic MCP user",
+        status: "active", trustTier: "test", observedAtUtc: now, lastVerifiedAtUtc: null, metadata: {} }],
+      edges: [], scores: { exposureScore: 0, trustScore: 1, connectionClarityScore: 1 }, metadata: {}
+    },
+    exposure: { graphId, generatedAtUtc: now, exposureScore: 0, findings: [], summaryText: "Synthetic fixture" },
+    actionHistory: []
+  };
+}
 
 const calls = [];
 const client = {
@@ -98,17 +116,20 @@ import { createClient, createJsonRpcError, narrowCredentials, REQUIRED_SCOPES } 
     throw new Error("token endpoint unavailable");
   };
 
-  assert.equal(await narrowCredentials(client), false, "narrowing must not throw when unsupported");
+  await assert.rejects(narrowCredentials(client), /token endpoint unavailable/,
+    "narrowed execution must fail closed rather than fall back to the ambient developer key");
 
   // Prove no config-key header is sent, by driving one real request through a stub fetcher.
-  const probe = createClient();
-  probe.fetcher = undefined;
-  const inspected = new (Object.getPrototypeOf(probe).constructor)({
+  assert.throws(() => new AegirSecurityClient({
+    baseUrl: "https://aegir.test/apis", fetcher: async () => { throw new Error("untrusted adapter must not run"); }
+  }), AegirSecurityError, "opaque adapters must still require explicit trusted-host admission");
+  const inspected = new AegirSecurityClient({
     baseUrl: "https://aegir.test/apis",
     developerKey: "devkey_active:secret",
+    allowTrustedCustomTransport: true, // This synthetic test adapter is deliberately admitted.
     fetcher: async (_url, init) => {
       captured.push(new Headers(init?.headers));
-      return new Response(JSON.stringify({ ok: true }), {
+      return new Response(JSON.stringify(scanPayload("user_1")), {
         status: 200,
         headers: { "Content-Type": "application/json" }
       });
@@ -118,32 +139,34 @@ import { createClient, createJsonRpcError, narrowCredentials, REQUIRED_SCOPES } 
   await inspected.scanIdentity("user_1");
   assert.equal(captured[0].get("X-Aegir-Config-Key"), null, "config key must not be sent");
   assert.equal(captured[0].get("X-Aegir-Developer-Key"), "devkey_active:secret");
+  inspected.close();
+  client.close();
 
-  process.env.AEGIR_BASE_URL = previous.baseUrl;
-  process.env.AEGIR_CONFIG_KEY = previous.configKey;
-  process.env.AEGIR_DEVELOPER_KEY = previous.developerKey;
+  for (const [key, value] of [["AEGIR_BASE_URL", previous.baseUrl], ["AEGIR_CONFIG_KEY", previous.configKey], ["AEGIR_DEVELOPER_KEY", previous.developerKey]]) {
+    if (value === undefined) delete process.env[key]; else process.env[key] = value;
+  }
 }
 
 // A narrowed token replaces the developer key on the wire.
 {
   const captured = [];
-  const { AegirSecurityClient } = await import("../../packages/npm/dist/esm/index.js");
   const client = new AegirSecurityClient({
     baseUrl: "https://aegir.test/apis",
     developerKey: "devkey_active:secret",
-    fetcher: async (_url, init) => {
+    allowTrustedCustomTransport: true,
+    fetcher: async (url, init) => {
       captured.push(new Headers(init?.headers));
       return new Response(
-        JSON.stringify({
+        JSON.stringify(String(url).endsWith("/v1/token") ? {
           access_token: "h.p.s",
           token_type: "Bearer",
           expires_in: 1800,
-          expires_at: "2026-08-05T12:30:00Z",
+          expires_at: new Date(Date.now() + 1800000).toISOString(),
           scope: REQUIRED_SCOPES,
           scopes: REQUIRED_SCOPES.split(" "),
           tenant_id: "tenant_dev",
           subject: "dev"
-        }),
+        } : scanPayload("user_1")),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -154,6 +177,7 @@ import { createClient, createJsonRpcError, narrowCredentials, REQUIRED_SCOPES } 
 
   assert.equal(captured[1].get("Authorization"), "Bearer h.p.s");
   assert.equal(captured[1].get("X-Aegir-Developer-Key"), null, "developer key must not persist once a token exists");
+  client.close();
 }
 
 // Errors do not leak server-supplied detail to the MCP client.
@@ -207,7 +231,11 @@ const verified = await handleMessage(client, {
   method: "tools/call",
   params: {
     name: "verify_transaction_receipt",
-    arguments: { receipt: { transactionId: "AGTX-0011" } }
+    arguments: { receipt: {
+      transactionId:"AGTX-0011",tenantId:"synthetic-tenant",callerPrincipalType:"DeveloperApplication",callerPrincipalId:"synthetic-developer",
+      declaredAction:"synthetic",authorizationDecision:"Allowed",status:"Open",eventChainRoot:"synthetic-chain",
+      createdAtUtc:"2026-10-29T00:00:00Z",issuedAtUtc:"2026-10-29T00:00:00Z",signingKid:"synthetic-key",algorithm:"ML-DSA-65",signature:"synthetic-signature"
+    } }
   }
 });
 assert.equal(verified.content[0].text.includes('"valid": true'), true);
@@ -219,3 +247,40 @@ for (const forbidden of ["identity:resolve", "protected:decrypt", "admin:full", 
 }
 
 console.log("ok - node mcp transaction audit surface");
+
+// R004: drive the actual HTTP client through MCP with a synthetic transport. The wrapper
+// must forward authority proofs unchanged and relay a server rejection, never verify locally.
+{
+  const fabricated = {
+    transactionId: "AGTX-r004-fixture",
+    tenantId:"synthetic-tenant",callerPrincipalType:"DeveloperApplication",callerPrincipalId:"synthetic-developer",declaredAction:"synthetic",
+    authorizationDecision:"Allowed",status:"Open",eventChainRoot:"synthetic-chain",createdAtUtc:"2026-10-29T00:00:00Z",issuedAtUtc:"2026-10-29T00:00:00Z",
+    signingKid: "unknown",
+    algorithm: "hybrid-beta1",
+    signature: Buffer.alloc(64).toString("base64")
+  };
+  let observed;
+  const authorityClient = new AegirSecurityClient({
+    baseUrl: "https://aegir.test/apis",
+    accessToken: "synthetic-test-token",
+    allowTrustedCustomTransport: true,
+    fetcher: async (url, init) => {
+      observed = { url, method: init.method, body: JSON.parse(init.body) };
+      return new Response(JSON.stringify({ valid: false, status: "SignatureInvalid", detail: null }), {
+        status: 200, headers: { "Content-Type": "application/json" }
+      });
+    }
+  });
+  const result = await handleMessage(authorityClient, {
+    method: "tools/call",
+    params: { name: "verify_transaction_receipt", arguments: { receipt: fabricated } }
+  });
+  assert.equal(observed.method, "POST");
+  assert.equal(observed.url, "https://aegir.test/apis/v1/transactions/receipt/verify");
+  assert.deepEqual(observed.body, { receipt: fabricated });
+  assert.equal(JSON.parse(result.content[0].text).valid, false);
+  assert.equal(JSON.parse(result.content[0].text).status, "SignatureInvalid");
+  assert.equal(transactionTools.tools.length, 12, "R004 must add no authority tools");
+  authorityClient.close();
+}
+console.log("ok - node mcp R004 delegates fabricated receipt rejection to server");

@@ -1,0 +1,588 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Foxlin Industries Aegir E2-C7 bounded secure execution source contract",
+    "version": "c7-source-v1",
+    "description": "Unreleased source-only. Exact runtime/review receipts govern qualification. Requests/responses and receipt wire bounded to16384 bytes. Duplicate fields rejected. No arbitrary runner or external effects."
+  },
+  "paths": {
+    "/v1/skills/v2/secure-execution": {
+      "post": {
+        "operationId": "api_post_v1_skills_v2_secure_execution",
+        "summary": "Execute canonical group metadata read or reconcile/verify exact retained original operation",
+        "security": [
+          {
+            "AgentKey": [],
+            "DelegationReference": []
+          }
+        ],
+        "x-aegir-authorization": "Current exact installed Skill, approved policy, Human source/session/consent, active target organization/application, Agent credential, full root/child lineage and finite reserved quota. Historical status still requires authenticated own grant namespace.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ExecutionRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/VerificationRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Classified result; success alone never implies committed execution. Inspect outcome/receipt/verification.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "schema",
+                    "result"
+                  ],
+                  "properties": {
+                    "schema": {
+                      "const": "aegir.secure-execution-skill.execution/v1"
+                    },
+                    "result": {
+                      "$ref": "#/components/schemas/Result"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Fail-closed refusal or recovery-required; no execution authority from artifact."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AgentKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Agent-Key"
+      },
+      "DelegationReference": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Delegation"
+      }
+    },
+    "schemas": {
+      "ExecutionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "operationId",
+          "skillKey",
+          "skillVersion",
+          "manifestDigest",
+          "adapterDigest",
+          "resourcePolicy",
+          "resourceAlias",
+          "scope",
+          "operation"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "execute",
+              "status"
+            ]
+          },
+          "operationId": {
+            "type": "string"
+          },
+          "skillKey": {
+            "type": "string"
+          },
+          "skillVersion": {
+            "type": "string"
+          },
+          "manifestDigest": {
+            "type": "string"
+          },
+          "adapterDigest": {
+            "type": "string"
+          },
+          "resourcePolicy": {
+            "type": "string",
+            "const": "group.administration.metadata.read"
+          },
+          "resourceAlias": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "const": "security:read"
+          },
+          "operation": {
+            "type": "string",
+            "const": "group.administration.metadata.execute-with-receipt"
+          }
+        }
+      },
+      "VerificationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "operationId",
+          "skillKey",
+          "skillVersion",
+          "manifestDigest",
+          "adapterDigest",
+          "resourcePolicy",
+          "resourceAlias",
+          "scope",
+          "operation",
+          "receipt"
+        ],
+        "properties": {
+          "action": {
+            "const": "verify"
+          },
+          "operationId": {
+            "type": "string"
+          },
+          "skillKey": {
+            "type": "string"
+          },
+          "skillVersion": {
+            "type": "string"
+          },
+          "manifestDigest": {
+            "type": "string"
+          },
+          "adapterDigest": {
+            "type": "string"
+          },
+          "resourcePolicy": {
+            "type": "string",
+            "const": "group.administration.metadata.read"
+          },
+          "resourceAlias": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "const": "security:read"
+          },
+          "operation": {
+            "type": "string",
+            "const": "group.administration.metadata.execute-with-receipt"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/Receipt"
+          }
+        }
+      },
+      "Receipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claims",
+          "signature"
+        ],
+        "properties": {
+          "claims": {
+            "$ref": "#/components/schemas/Claims"
+          },
+          "signature": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8192
+          }
+        }
+      },
+      "Claims": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema",
+          "receiptId",
+          "operationId",
+          "skillId",
+          "skillVersion",
+          "skillKey",
+          "manifestDigest",
+          "adapterId",
+          "adapterDigest",
+          "originalIntentDigest",
+          "invocationDigest",
+          "inputDigest",
+          "tenantId",
+          "resourcePolicy",
+          "resourceAlias",
+          "agentId",
+          "humanAuthorityReference",
+          "rootGrantId",
+          "grantId",
+          "lineageCommitment",
+          "policyCommitment",
+          "approvalId",
+          "enablementId",
+          "installationId",
+          "installationApprovalId",
+          "outcome",
+          "commitmentId",
+          "executedAtUtc",
+          "signedAtUtc",
+          "resultCommitment",
+          "algorithm",
+          "signingKeyId",
+          "signerPrincipal",
+          "publicKeyFingerprint",
+          "trustProfile",
+          "clientDelivery",
+          "externalEffects"
+        ],
+        "properties": {
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$",
+            "const": "aegir.skill.secure-execution-receipt/v1"
+          },
+          "receiptId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "operationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "skillId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$",
+            "const": "aegir.secure-execution.group-metadata"
+          },
+          "skillVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "skillKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "manifestDigest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "adapterId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$",
+            "const": "foxlin.builtin.secure-execution-receipt.v1"
+          },
+          "adapterDigest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "originalIntentDigest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "invocationDigest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "inputDigest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "tenantId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "resourcePolicy": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$",
+            "const": "group.administration.metadata.read"
+          },
+          "resourceAlias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "agentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "humanAuthorityReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "rootGrantId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "grantId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "lineageCommitment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "policyCommitment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "approvalId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "enablementId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "installationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "installationApprovalId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "outcome": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$",
+            "const": "CommittedRead"
+          },
+          "commitmentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "executedAtUtc": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "signedAtUtc": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "resultCommitment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "algorithm": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "signingKeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "signerPrincipal": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$",
+            "const": "aegir:service"
+          },
+          "publicKeyFingerprint": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$"
+          },
+          "trustProfile": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$",
+            "const": "aegir.c7.pinned-service-key/v1"
+          },
+          "clientDelivery": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$",
+            "const": "unproven"
+          },
+          "externalEffects": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[ -~]+$",
+            "const": "not-claimed"
+          }
+        }
+      },
+      "Result": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "outcome",
+          "executionId",
+          "grantId",
+          "isReplay",
+          "metadata",
+          "receipt",
+          "verification",
+          "grantsAuthority",
+          "clientDelivery"
+        ],
+        "properties": {
+          "outcome": {
+            "type": "string"
+          },
+          "executionId": {
+            "type": "string"
+          },
+          "grantId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isReplay": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "New authorized read only: resourceAlias, depth and status. Never historical re-disclosure."
+          },
+          "receipt": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Receipt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verification": {
+            "type": "string"
+          },
+          "grantsAuthority": {
+            "const": false
+          },
+          "clientDelivery": {
+            "const": "unproven"
+          }
+        }
+      }
+    }
+  },
+  "x-aegir-canonical-field-order": [
+    "schema",
+    "receiptId",
+    "operationId",
+    "skillId",
+    "skillVersion",
+    "skillKey",
+    "manifestDigest",
+    "adapterId",
+    "adapterDigest",
+    "originalIntentDigest",
+    "invocationDigest",
+    "inputDigest",
+    "tenantId",
+    "resourcePolicy",
+    "resourceAlias",
+    "agentId",
+    "humanAuthorityReference",
+    "rootGrantId",
+    "grantId",
+    "lineageCommitment",
+    "policyCommitment",
+    "approvalId",
+    "enablementId",
+    "installationId",
+    "installationApprovalId",
+    "outcome",
+    "commitmentId",
+    "executedAtUtc",
+    "signedAtUtc",
+    "resultCommitment",
+    "algorithm",
+    "signingKeyId",
+    "signerPrincipal",
+    "publicKeyFingerprint",
+    "trustProfile",
+    "clientDelivery",
+    "externalEffects"
+  ],
+  "x-aegir-canonical-domain": "Foxlin.Aegir/secure-execution-receipt/v1",
+  "x-aegir-canonical-encoding": "Strict ASCII values encoded UTF8, fixed field order, domain then37 fields; every value prefixed signed Int32 little-endian byte length. Exact timestamp/identifier/digest constraints additionally enforced by source.",
+  "x-aegir-offline-trust": "Separately pinned service public key/lifecycle and6 exact request context values. Artifact math is not current authority, independent SQL observation, client delivery or external-effect evidence.",
+  "x-aegir-production-release-authorized": false
+}

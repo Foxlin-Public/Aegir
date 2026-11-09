@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
+import math
 
 
 JsonMap = dict[str, Any]
@@ -75,9 +76,9 @@ class IdentityGraphScores:
     @staticmethod
     def from_json(payload: JsonMap) -> "IdentityGraphScores":
         return IdentityGraphScores(
-            exposureScore=float(payload["exposureScore"]),
-            trustScore=float(payload["trustScore"]),
-            connectionClarityScore=float(payload["connectionClarityScore"]),
+            exposureScore=_wire_number(payload["exposureScore"]),
+            trustScore=_wire_number(payload["trustScore"]),
+            connectionClarityScore=_wire_number(payload["connectionClarityScore"]),
         )
 
 
@@ -96,7 +97,7 @@ class IdentityGraphNode:
     def from_json(payload: JsonMap) -> "IdentityGraphNode":
         return IdentityGraphNode(
             nodeId=payload["nodeId"],
-            nodeType=IdentityGraphNodeType(payload["nodeType"]),
+            nodeType=_wire_enum(IdentityGraphNodeType, payload["nodeType"]),
             displayName=payload["displayName"],
             status=payload["status"],
             trustTier=payload["trustTier"],
@@ -124,7 +125,7 @@ class IdentityGraphEdge:
     def from_json(payload: JsonMap) -> "IdentityGraphEdge":
         return IdentityGraphEdge(
             edgeId=payload["edgeId"],
-            edgeType=IdentityGraphEdgeType(payload["edgeType"]),
+            edgeType=_wire_enum(IdentityGraphEdgeType, payload["edgeType"]),
             fromNodeId=payload["fromNodeId"],
             toNodeId=payload["toNodeId"],
             status=payload["status"],
@@ -172,8 +173,8 @@ class ExposureFinding:
     def from_json(payload: JsonMap) -> "ExposureFinding":
         return ExposureFinding(
             findingId=payload["findingId"],
-            category=ExposureFindingCategory(payload["category"]),
-            severity=ExposureFindingSeverity(payload["severity"]),
+            category=_wire_enum(ExposureFindingCategory, payload["category"]),
+            severity=_wire_enum(ExposureFindingSeverity, payload["severity"]),
             summary=payload["summary"],
             nodeId=payload.get("nodeId"),
             edgeId=payload.get("edgeId"),
@@ -194,7 +195,7 @@ class ExposureSummary:
         return ExposureSummary(
             graphId=payload["graphId"],
             generatedAtUtc=payload["generatedAtUtc"],
-            exposureScore=float(payload["exposureScore"]),
+            exposureScore=_wire_number(payload["exposureScore"]),
             findings=[ExposureFinding.from_json(item) for item in payload.get("findings", [])],
             summaryText=payload["summaryText"],
         )
@@ -237,8 +238,8 @@ class IdentityActionRecord:
         return IdentityActionRecord(
             actionId=payload["actionId"],
             subjectId=payload["subjectId"],
-            actionType=IdentityActionType(payload["actionType"]),
-            status=IdentityActionStatus(payload["status"]),
+            actionType=_wire_enum(IdentityActionType, payload["actionType"]),
+            status=_wire_enum(IdentityActionStatus, payload["status"]),
             targetNodeId=payload.get("targetNodeId"),
             reason=payload.get("reason"),
             requestedAtUtc=payload["requestedAtUtc"],
@@ -263,3 +264,20 @@ class ScanIdentityResult:
             exposure=ExposureSummary.from_json(payload["exposure"]),
             actionHistory=[IdentityActionRecord.from_json(item) for item in payload.get("actionHistory", [])],
         )
+
+
+def _wire_enum(enum_type,value):
+    """Accept exact canonical C# numeric enums and retained public named values."""
+    if type(value) is int:
+        members=list(enum_type)
+        if 1<=value<=len(members):return members[value-1]
+        raise ValueError("Unknown enum value.")
+    if not isinstance(value,str):raise ValueError("Invalid enum value.")
+    try: return enum_type(value)
+    except ValueError: raise ValueError("Unknown enum value.") from None
+
+
+def _wire_number(value):
+    if type(value) not in (int,float) or not math.isfinite(value):
+        raise ValueError("Invalid numeric field.")
+    return float(value)

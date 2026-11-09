@@ -1,0 +1,645 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Aegir E2-C6 Agent Onboarding Skill source contract",
+    "version": "c6-source-v1",
+    "description": "Unreleased preparation-only source contract. Native adversarial qualification is pending; no identity/proposal/credential creation, issuance approval or package publication."
+  },
+  "paths": {
+    "/v1/skills/v2/agent-onboarding-preparation": {
+      "post": {
+        "operationId": "api_post_v1_skills_v2_agent_onboarding_preparation",
+        "summary": "Prepare one exact Agent enrollment candidate; never create identities or credentials",
+        "x-aegir-host": "api",
+        "x-aegir-authorization": "Current Agent and exact installed ags2 chain, original current Human with non-platform scoped group-administration inspection source/session and staff relationship, exact owned application/group read policy, reviewed Auth artifact, platform approval, organization enablement, installation and fresh purpose-specific consent. Inspection never establishes proposal, approval or provisioner authority.",
+        "x-aegir-organization-context": "Exact tenant/Human/organization/group/application/owner/policy/installation and all five candidate fields; no ancestor, sibling, foreign or customer-only authority.",
+        "x-aegir-identity-type": "Current Agent root or narrower child; Developer credentials do not prove Human presence or approval.",
+        "x-aegir-license": "This inspects canonical registration configuration under administrative inspection rights. It neither evaluates nor grants application business licensing, group membership or issuance authority.",
+        "x-aegir-idempotency": "Exact immutable operationId and intent. Duplicate no private metadata redisclosure, explicit status only nonsecret current reconciliation. Missing or failed evidence is never Abort; no automatic retry.",
+        "x-aegir-limits": "11 exact top-level fields and five exact candidate fields;4096-byte server request;explicit unique1..16 capability identifiers;bounded manifest output;16384-byte .NET response;finite reserved uses/history;no refunds, pruning, credentials or identity reservation.",
+        "security": [
+          {
+            "AgentKey": [],
+            "InstalledDelegation": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentOnboardingExecutionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Initial bounded non-authorizing enrollment preparation or retained nonsecret operation reconciliation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentOnboardingExecutionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid exact supported request or query/content-encoding contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Upstream current-credential admission refused where applicable; upstream response can be empty"
+          },
+          "403": {
+            "description": "Current authority/profile refused, or HTTPS required; authority refusal has JSON {outcome}; HTTPS-required refusal can be empty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Immutable operation, revision or lifecycle conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required; empty response"
+          },
+          "429": {
+            "description": "Retained history/use capacity exhausted; no eviction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refusal"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Current authority or evidence unverifiable; reconcile original identity, never infer Abort",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Refusal"
+                    },
+                    {
+                      "$ref": "#/components/schemas/RecoveryRequired"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AgentKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Agent-Key"
+      },
+      "InstalledDelegation": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Delegation"
+      }
+    },
+    "schemas": {
+      "AgentOnboardingExecutionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "execute",
+              "status"
+            ]
+          },
+          "operationId": {
+            "type": "string",
+            "pattern": "^[0-9A-Fa-f]{32}$",
+            "not": {
+              "const": "00000000000000000000000000000000"
+            },
+            "description": "Exact N-format nonempty Guid; canonical clients emit lowercase"
+          },
+          "skillKey": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "skillVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "manifestDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "adapterDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "resourcePolicy": {
+            "const": "application.agent-onboarding.preparation.read"
+          },
+          "resourceAlias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "description": "Runtime rejects every .NET char.IsControl code point; exact originally consented alias, never a caller-selected expansion."
+          },
+          "scope": {
+            "type": "string",
+            "const": "security:read"
+          },
+          "operation": {
+            "const": "application.agent-onboarding.prepare"
+          },
+          "enrollment": {
+            "$ref": "#/components/schemas/AgentEnrollmentCandidate"
+          }
+        },
+        "required": [
+          "action",
+          "operationId",
+          "skillKey",
+          "skillVersion",
+          "manifestDigest",
+          "adapterDigest",
+          "resourcePolicy",
+          "resourceAlias",
+          "scope",
+          "operation",
+          "enrollment"
+        ]
+      },
+      "AgentEnrollmentPreparation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "aegir.skill.agent-onboarding-output/v1"
+          },
+          "resourceAlias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "operation": {
+            "const": "application.agent-onboarding.prepare"
+          },
+          "decision": {
+            "enum": [
+              "ConfigurationValidated",
+              "UnsupportedIdentityClass",
+              "UnsupportedCredentialCustody",
+              "BlockedCapabilities",
+              "ExistingIdentityNotReusable",
+              "IdentityReferenceUnavailable"
+            ]
+          },
+          "identityClass": {
+            "enum": [
+              "registered-agent",
+              "unsupported"
+            ]
+          },
+          "identityUniqueness": {
+            "enum": [
+              "server-assigned-at-issuance-not-reserved",
+              "existing-identity-not-reusable",
+              "identity-reference-unavailable"
+            ]
+          },
+          "canonicalRegistrationPolicy": {
+            "const": "current-developer-management-agent-write-owned-application"
+          },
+          "requiredProvisionerScope": {
+            "const": "agent:write"
+          },
+          "validatedCapabilities": {
+            "type": "array",
+            "maxItems": 16,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "agent:invoke",
+                "agent:message",
+                "security:read",
+                "transaction:write",
+                "transaction:read"
+              ]
+            }
+          },
+          "provisionerAuthorityVerified": {
+            "const": false
+          },
+          "credentialCustodyVerified": {
+            "const": false
+          },
+          "registrationCapacity": {
+            "const": "not-defined-by-current-registration-contract-recheck-at-issuance"
+          },
+          "missingPrerequisites": {
+            "const": [
+              "independent-current-provisioner-authorization",
+              "approved-credential-custody",
+              "issuance-time-identity-and-capacity-check",
+              "separate-group-assignment-if-required"
+            ]
+          },
+          "uninspectedRegistrationFields": {
+            "const": [
+              "provider",
+              "model",
+              "lifetime"
+            ]
+          },
+          "groupAssigned": {
+            "const": false
+          },
+          "proposalCreated": {
+            "const": false
+          },
+          "identityCreated": {
+            "const": false
+          },
+          "credentialIssued": {
+            "const": false
+          },
+          "approvalGranted": {
+            "const": false
+          },
+          "issuanceAuthorized": {
+            "const": false
+          },
+          "delegationAuthorityGranted": {
+            "const": false
+          },
+          "privateKeyExportPermitted": {
+            "const": false
+          },
+          "preparationOnly": {
+            "const": true
+          },
+          "nextAuthorizedAction": {
+            "enum": [
+              "separate-authorized-developer-registration-with-approved-custody",
+              "correct-blocked-or-unsupported-prerequisites"
+            ]
+          },
+          "observedAt": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "schema",
+          "resourceAlias",
+          "operation",
+          "decision",
+          "identityClass",
+          "identityUniqueness",
+          "canonicalRegistrationPolicy",
+          "requiredProvisionerScope",
+          "validatedCapabilities",
+          "provisionerAuthorityVerified",
+          "credentialCustodyVerified",
+          "registrationCapacity",
+          "missingPrerequisites",
+          "uninspectedRegistrationFields",
+          "groupAssigned",
+          "proposalCreated",
+          "identityCreated",
+          "credentialIssued",
+          "approvalGranted",
+          "issuanceAuthorized",
+          "delegationAuthorityGranted",
+          "privateKeyExportPermitted",
+          "preparationOnly",
+          "nextAuthorizedAction",
+          "observedAt"
+        ]
+      },
+      "AgentOnboardingExecutionResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "PreparedAgentEnrollment",
+              "AlreadyConsumed",
+              "CommittedRead",
+              "Unknown/recovery-required",
+              "Expired",
+              "Suspended",
+              "Revoked",
+              "UseLimitExhausted"
+            ]
+          },
+          "executionId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "grantId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isReplay": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentEnrollmentPreparation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resultDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "response_prepared_client_receipt_unproven",
+              "client_receipt_unproven"
+            ]
+          }
+        },
+        "required": [
+          "outcome",
+          "executionId",
+          "grantId",
+          "isReplay",
+          "metadata",
+          "resultDigest",
+          "delivery"
+        ],
+        "description": "Only initial admitted execution returns metadata. Duplicate execute and explicit status preserve operation identity and nonsecret terminal truth without private redisclosure. Missing evidence is Unknown/recovery-required, never Abort."
+      },
+      "AgentOnboardingExecutionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "aegir.agent-onboarding-skill.execution/v1"
+          },
+          "result": {
+            "$ref": "#/components/schemas/AgentOnboardingExecutionResult"
+          }
+        },
+        "required": [
+          "schema",
+          "result"
+        ]
+      },
+      "AgentOnboardingSkillManifest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "type": "string",
+            "const": "aegir.skill-manifest/v1"
+          },
+          "skillId": {
+            "const": "aegir.agent-onboarding.preparation"
+          },
+          "family": {
+            "const": "agent-onboarding"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[A-Za-z0-9.-]+)?$",
+            "maxLength": 64
+          },
+          "publisher": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "application": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "organization": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Inert reviewed description; runtime rejects char.IsControl. Never executable instructions or policy authority."
+          },
+          "adapter": {
+            "const": "foxlin.builtin.agent-onboarding-preparation.v1"
+          },
+          "adapterDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "resource": {
+            "const": "application.agent-onboarding.preparation.read"
+          },
+          "scopes": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "security:read"
+              }
+            ],
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "sideEffects": {
+            "type": "string",
+            "const": "none"
+          },
+          "inputSchema": {
+            "const": "aegir.skill.agent-onboarding-input/v1"
+          },
+          "outputSchema": {
+            "const": "aegir.skill.agent-onboarding-output/v1"
+          },
+          "maximumInputBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "maximumOutputBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "maximumMilliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5000
+          },
+          "humanAssurance": {
+            "type": "string",
+            "const": "totp.consent"
+          },
+          "approvalPolicy": {
+            "type": "string",
+            "const": "CurrentPlatformReviewAndApprovalThenScopedHumanEnablement"
+          },
+          "runtimeCompatibility": {
+            "const": "aegir.c6.builtin-agent-onboarding-preparation/v1"
+          },
+          "expiresAt": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 253402300799
+          }
+        },
+        "required": [
+          "schema",
+          "skillId",
+          "family",
+          "version",
+          "publisher",
+          "application",
+          "organization",
+          "description",
+          "adapter",
+          "adapterDigest",
+          "resource",
+          "scopes",
+          "sideEffects",
+          "inputSchema",
+          "outputSchema",
+          "maximumInputBytes",
+          "maximumOutputBytes",
+          "maximumMilliseconds",
+          "humanAssurance",
+          "approvalPolicy",
+          "runtimeCompatibility",
+          "expiresAt"
+        ],
+        "description": "Exact C6 preparation profile under existing immutable reviewed registry and installation contracts; actual loaded Auth digest, current platform approval and scoped enablement are mandatory. No identity, credential or issuance approval is created."
+      },
+      "Refusal": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "AgentEnrollmentCandidate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Runtime additionally rejects whitespace-only names, control characters and more than1024 UTF-16 code units; this is an inspection bound, not a global identity naming/uniqueness policy."
+          },
+          "identityClass": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "identityReference": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "credentialCustody": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "capabilities": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 16,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "identityClass",
+          "identityReference",
+          "credentialCustody",
+          "capabilities"
+        ]
+      },
+      "RecoveryRequired": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "const": "recovery_required"
+          }
+        }
+      }
+    }
+  },
+  "x-aegir-production-release-authorized": false,
+  "x-aegir-c6-consent-pins": {
+    "requiredIntentFields": [
+      "skillInstallationId",
+      "onboardingName",
+      "onboardingType",
+      "onboardingIdentity",
+      "onboardingCustody",
+      "onboardingCapabilities"
+    ],
+    "freshHumanConsent": true,
+    "intentDomain": "Foxlin.Aegir/agent-onboarding-installed-skill-consent-intent/v5"
+  },
+  "x-aegir-preparation-only": true,
+  "x-aegir-identity-credential-issuance-authorized": false
+}

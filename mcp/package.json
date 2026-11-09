@@ -7,6 +7,6 @@
   "license": "MIT",
   "scripts": {
     "start": "node ./src/server.mjs",
-    "test": "node ./tests/server.test.mjs"
+    "test": "node ./tests/server.test.mjs && node --test ./tests/wire.test.mjs"
   }
 }

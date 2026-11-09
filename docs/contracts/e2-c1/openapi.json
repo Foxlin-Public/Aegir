@@ -1,0 +1,2008 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Foxlin Industries Aegir C1 Skills source supplement",
+    "version": "c1-source-v1",
+    "description": "Additive strict source contract; original v1/B3/B4 artifacts unchanged. Execution acceptance is established only by the source-bound C1 handoff."
+  },
+  "paths": {
+    "/v1/delegations/v3/root-t1": {
+      "post": {
+        "operationId": "api_post_v1_delegations_v3_root_t1",
+        "summary": "C1 reviewed bounded metadata Skill root-t1",
+        "x-aegir-host": "api",
+        "x-aegir-classification": "restricted-c1-skills-source",
+        "x-aegir-authorization": "Current exact Human issuer or current authorized Human approver; separate fresh C1 purposes",
+        "x-aegir-organization-context": "Canonical sole current organization/application mapping and current staff/source authority; personal scope belongs only to original issuer",
+        "x-aegir-identity-type": "Current exact Human issuer or current authorized Human approver; separate fresh C1 purposes",
+        "x-aegir-license": "Current active bound developer/application/environment and canonical original resource authority; no financial acquisition",
+        "x-aegir-idempotency": "Exact durable request/operation identity; no new identity to escape budget, secret replay or inferred Abort",
+        "x-aegir-limits": "Bounded strict JSON, registry rows/manifest bytes, current exact pins, finite exclusive reservations, independently retained witness",
+        "tags": [
+          "E2-C1 reviewed metadata Skills"
+        ],
+        "security": [
+          {
+            "BearerToken": []
+          },
+          {
+            "SessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/C1RootCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bounded current result or immutable nonsecret replay; never infer client delivery or Abort.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/C1Result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/delegations/v3/child": {
+      "post": {
+        "operationId": "api_post_v1_delegations_v3_child",
+        "summary": "C1 reviewed bounded metadata Skill child",
+        "x-aegir-host": "api",
+        "x-aegir-classification": "restricted-c1-skills-source",
+        "x-aegir-authorization": "Current original Agent and own parent ags1 reference",
+        "x-aegir-organization-context": "Canonical sole current organization/application mapping and current staff/source authority; personal scope belongs only to original issuer",
+        "x-aegir-identity-type": "Current original Agent and own parent ags1 reference",
+        "x-aegir-license": "Current active bound developer/application/environment and canonical original resource authority; no financial acquisition",
+        "x-aegir-idempotency": "Exact durable request/operation identity; no new identity to escape budget, secret replay or inferred Abort",
+        "x-aegir-limits": "Bounded strict JSON, registry rows/manifest bytes, current exact pins, finite exclusive reservations, independently retained witness",
+        "tags": [
+          "E2-C1 reviewed metadata Skills"
+        ],
+        "security": [
+          {
+            "AgentKey": [],
+            "SkillDelegationReference": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/C1Child"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bounded current result or immutable nonsecret replay; never infer client delivery or Abort.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/C1Result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/skills/v1/registry": {
+      "post": {
+        "operationId": "api_post_v1_skills_v1_registry",
+        "summary": "C1 reviewed bounded metadata Skill registry",
+        "x-aegir-host": "api",
+        "x-aegir-classification": "restricted-c1-skills-source",
+        "x-aegir-authorization": "Current owned Developer publisher or current restricted Human administrator/owner per action; never Agent administration",
+        "x-aegir-organization-context": "Canonical sole current organization/application mapping and current staff/source authority; personal scope belongs only to original issuer",
+        "x-aegir-identity-type": "Current owned Developer publisher or current restricted Human administrator/owner per action; never Agent administration",
+        "x-aegir-license": "Current active bound developer/application/environment and canonical original resource authority; no financial acquisition",
+        "x-aegir-idempotency": "Exact durable request/operation identity; no new identity to escape budget, secret replay or inferred Abort",
+        "x-aegir-limits": "Bounded strict JSON, registry rows/manifest bytes, current exact pins, finite exclusive reservations, independently retained witness",
+        "tags": [
+          "E2-C1 reviewed metadata Skills"
+        ],
+        "security": [
+          {
+            "BearerToken": []
+          },
+          {
+            "SessionToken": []
+          },
+          {
+            "DeveloperKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/C1RegistryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bounded current result or immutable nonsecret replay; never infer client delivery or Abort.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/C1RegistryResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/skills/v1/executions": {
+      "post": {
+        "operationId": "api_post_v1_skills_v1_executions",
+        "summary": "C1 reviewed bounded metadata Skill executions",
+        "x-aegir-host": "api",
+        "x-aegir-classification": "restricted-c1-skills-source",
+        "x-aegir-authorization": "Current original Agent and own freshly consented exact Skill ags1 reference",
+        "x-aegir-organization-context": "Canonical sole current organization/application mapping and current staff/source authority; personal scope belongs only to original issuer",
+        "x-aegir-identity-type": "Current original Agent and own freshly consented exact Skill ags1 reference",
+        "x-aegir-license": "Current active bound developer/application/environment and canonical original resource authority; no financial acquisition",
+        "x-aegir-idempotency": "Exact durable request/operation identity; no new identity to escape budget, secret replay or inferred Abort",
+        "x-aegir-limits": "Bounded strict JSON, registry rows/manifest bytes, current exact pins, finite exclusive reservations, independently retained witness",
+        "tags": [
+          "E2-C1 reviewed metadata Skills"
+        ],
+        "security": [
+          {
+            "AgentKey": [],
+            "SkillDelegationReference": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/C1ExecutionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bounded current result or immutable nonsecret replay; never infer client delivery or Abort.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/C1ExecutionResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Bounded fail-closed refusal; unknown terminal truth requires reconciliation.",
+            "x-aegir-body-may-be-empty": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/C1Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/C1Result"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "C1RootCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "proposalId": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "intentDigest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "requestId": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "action": {
+            "enum": [
+              "challenge",
+              "approve",
+              "consent-challenge",
+              "consent-approve",
+              "activate",
+              "inspect",
+              "revoke",
+              "suspend",
+              "configure"
+            ]
+          },
+          "challenge": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totpCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{6}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "enum": [
+                  "delegation:skill-chain-policy:approve:v1",
+                  "delegation:skill-chain-root:consent:v1"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "definition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/C1Definition"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subjectGrantId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "proposalId",
+          "intentDigest",
+          "requestId",
+          "action",
+          "challenge",
+          "totpCode",
+          "purpose",
+          "approvalDigest",
+          "definition",
+          "subjectGrantId"
+        ]
+      },
+      "C1Metadata": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "resourceAlias": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "depth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 128
+          }
+        },
+        "required": [
+          "resourceAlias",
+          "status"
+        ]
+      },
+      "C1Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "C1Result": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "grantId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "credential": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^ags1_[0-9a-f]{64}$",
+                "description": "Return once after durable new root/child commit. Pair only with the exact bound current Agent key. Never reconstructed on replay."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "challenge": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expiresAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isReplay": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/C1Metadata"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resourceAlias": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalDefinition": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16384
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "outcome",
+          "grantId",
+          "credential",
+          "challenge",
+          "expiresAt",
+          "isReplay",
+          "metadata",
+          "resourceAlias",
+          "operationId",
+          "approvalDigest",
+          "approvalDefinition"
+        ]
+      },
+      "C1Agent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "agentId": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "credentialId": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "epoch": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "agentId",
+          "credentialId",
+          "epoch"
+        ]
+      },
+      "C1Definition": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "aegir.skill-chain-root-t1/v3"
+          },
+          "allocationMode": {
+            "const": "exclusive-child-reservation-no-automatic-refund/v1"
+          },
+          "maximumEdges": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "maximumChildren": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "maximumUses": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 512
+          },
+          "agents": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 32,
+            "items": {
+              "$ref": "#/components/schemas/C1Agent"
+            }
+          },
+          "skill": {
+            "$ref": "#/components/schemas/C1SkillPin"
+          }
+        },
+        "required": [
+          "schema",
+          "allocationMode",
+          "maximumEdges",
+          "maximumChildren",
+          "maximumUses",
+          "agents",
+          "skill"
+        ]
+      },
+      "C1Child": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "action": {
+            "enum": [
+              "issue",
+              "inspect",
+              "revoke",
+              "suspend"
+            ]
+          },
+          "parentId": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "targetAgentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resourcePolicy": {
+            "anyOf": [
+              {
+                "enum": [
+                  "self.account.metadata.read",
+                  "group.administration.metadata.read"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resourceAlias": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scopes": {
+            "anyOf": [
+              {
+                "type": "array",
+                "maxItems": 4,
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maximumUses": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 512
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expiresAt": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 253402300799
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subjectId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "requestId",
+          "action",
+          "parentId",
+          "targetAgentId",
+          "resourcePolicy",
+          "resourceAlias",
+          "scopes",
+          "maximumUses",
+          "expiresAt",
+          "subjectId"
+        ]
+      },
+      "C1SkillPin": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "manifest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "adapter": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "approval": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "enablement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[0-9a-fA-F]{32}$"
+          }
+        },
+        "required": [
+          "key",
+          "publisher",
+          "manifest",
+          "adapter",
+          "approval",
+          "enablement"
+        ]
+      },
+      "C1Manifest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schema": {
+            "const": "aegir.skill-manifest/v1"
+          },
+          "skillId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.:-]+$"
+          },
+          "family": {
+            "enum": [
+              "authentication",
+              "authorization-rbac",
+              "mcp-security",
+              "agent-onboarding",
+              "secure-execution-receipt",
+              "audit-troubleshooting",
+              "organization-onboarding"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[A-Za-z0-9.-]+)?$"
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.:-]+$"
+          },
+          "application": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.:-]+$"
+          },
+          "organization": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9_.:-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+          },
+          "adapter": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.:-]+$"
+          },
+          "adapterDigest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "resource": {
+            "enum": [
+              "self.account.metadata.read",
+              "group.administration.metadata.read"
+            ]
+          },
+          "scopes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "const": "security:read"
+            }
+          },
+          "sideEffects": {
+            "const": "none"
+          },
+          "inputSchema": {
+            "const": "aegir.skill.metadata-input/v1"
+          },
+          "outputSchema": {
+            "const": "aegir.skill.metadata-output/v1"
+          },
+          "maximumInputBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "maximumOutputBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "maximumMilliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5000
+          },
+          "humanAssurance": {
+            "const": "totp.consent"
+          },
+          "approvalPolicy": {
+            "const": "CurrentPlatformReviewAndApprovalThenScopedHumanEnablement"
+          },
+          "runtimeCompatibility": {
+            "const": "aegir.c1.builtin-metadata/v1"
+          },
+          "expiresAt": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 253402300799
+          }
+        },
+        "required": [
+          "schema",
+          "skillId",
+          "family",
+          "version",
+          "publisher",
+          "application",
+          "organization",
+          "description",
+          "adapter",
+          "adapterDigest",
+          "resource",
+          "scopes",
+          "sideEffects",
+          "inputSchema",
+          "outputSchema",
+          "maximumInputBytes",
+          "maximumOutputBytes",
+          "maximumMilliseconds",
+          "humanAssurance",
+          "approvalPolicy",
+          "runtimeCompatibility",
+          "expiresAt"
+        ]
+      },
+      "C1RegistryRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "action": {
+            "enum": [
+              "inspect",
+              "register-publisher",
+              "submit",
+              "request-review",
+              "review",
+              "approve",
+              "enable",
+              "disable",
+              "suspend",
+              "revoke",
+              "retire",
+              "revoke-publisher"
+            ]
+          },
+          "application": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.:-]+$"
+          },
+          "organization": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9_.:-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 32
+          },
+          "manifestDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totpCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 6,
+                "pattern": "^[0-9]{6}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "manifest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/C1Manifest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "requestId",
+          "action",
+          "application",
+          "organization",
+          "key",
+          "expectedRevision",
+          "manifestDigest",
+          "purpose",
+          "totpCode",
+          "manifest"
+        ]
+      },
+      "C1RegistryResult": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "Registered",
+                  "Awaiting review",
+                  "Reviewed",
+                  "Approved",
+                  "Enabled",
+                  "Suspended",
+                  "Revoked",
+                  "Retired",
+                  "Quarantined/recovery-required"
+                ]
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              }
+            },
+            "required": [
+              "outcome",
+              "revision"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "outcome": {
+                "const": "Registered"
+              },
+              "publisherKey": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              }
+            },
+            "required": [
+              "outcome",
+              "publisherKey",
+              "revision"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "outcome": {
+                "const": "Registered"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "manifestDigest": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              }
+            },
+            "required": [
+              "outcome",
+              "key",
+              "manifestDigest",
+              "revision"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "Registered",
+                  "Awaiting review",
+                  "Reviewed",
+                  "Approved",
+                  "Enabled",
+                  "Suspended",
+                  "Revoked",
+                  "Retired",
+                  "Quarantined/recovery-required"
+                ]
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              },
+              "enablementKey": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "outcome",
+              "revision",
+              "enablementKey"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "Registered",
+                  "Awaiting review",
+                  "Reviewed",
+                  "Approved",
+                  "Enabled",
+                  "Suspended",
+                  "Revoked",
+                  "Retired",
+                  "Quarantined/recovery-required"
+                ]
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              },
+              "isReplay": {
+                "const": true
+              }
+            },
+            "required": [
+              "outcome",
+              "revision",
+              "isReplay"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "outcome": {
+                "const": "Unauthorized"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "families": {
+                "type": "array",
+                "minItems": 7,
+                "maxItems": 7,
+                "uniqueItems": true,
+                "items": {
+                  "enum": [
+                    "authentication",
+                    "authorization-rbac",
+                    "mcp-security",
+                    "agent-onboarding",
+                    "secure-execution-receipt",
+                    "audit-troubleshooting",
+                    "organization-onboarding"
+                  ]
+                }
+              },
+              "versions": {
+                "type": "array",
+                "maxItems": 32,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "version_key": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "skill_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128,
+                      "pattern": "^[A-Za-z0-9_.:-]+$"
+                    },
+                    "family": {
+                      "enum": [
+                        "authentication",
+                        "authorization-rbac",
+                        "mcp-security",
+                        "agent-onboarding",
+                        "secure-execution-receipt",
+                        "audit-troubleshooting",
+                        "organization-onboarding"
+                      ]
+                    },
+                    "version": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64
+                    },
+                    "manifest_digest": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "adapter_digest": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "required": [
+                    "version_key",
+                    "skill_id",
+                    "family",
+                    "version",
+                    "manifest_digest",
+                    "adapter_digest"
+                  ]
+                }
+              },
+              "adapter": {
+                "const": "foxlin.builtin.authorized-metadata.v1"
+              },
+              "actualArtifactDigest": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "classification": {
+                "const": "discovery_not_authority"
+              }
+            },
+            "required": [
+              "families",
+              "versions",
+              "adapter",
+              "actualArtifactDigest",
+              "classification"
+            ]
+          }
+        ]
+      },
+      "C1ExecutionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "execute",
+              "status"
+            ]
+          },
+          "operationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[0-9a-fA-F]{32}$"
+          },
+          "skillKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "skillVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "manifestDigest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "adapterDigest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "resourcePolicy": {
+            "enum": [
+              "self.account.metadata.read",
+              "group.administration.metadata.read"
+            ]
+          },
+          "resourceAlias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+          },
+          "scope": {
+            "const": "security:read"
+          }
+        },
+        "required": [
+          "action",
+          "operationId",
+          "skillKey",
+          "skillVersion",
+          "manifestDigest",
+          "adapterDigest",
+          "resourcePolicy",
+          "resourceAlias",
+          "scope"
+        ]
+      },
+      "C1ExecutionResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "enum": [
+              "ExecutedMetadata",
+              "AlreadyConsumed",
+              "CommittedRead",
+              "Unknown/recovery-required",
+              "Revoked",
+              "Suspended",
+              "Expired",
+              "UseLimitExhausted"
+            ]
+          },
+          "executionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "grantId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 32,
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isReplay": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/C1Metadata"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resultDigest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delivery": {
+            "enum": [
+              "response_prepared_client_receipt_unproven",
+              "client_receipt_unproven"
+            ]
+          }
+        },
+        "required": [
+          "outcome",
+          "executionId",
+          "grantId",
+          "isReplay",
+          "metadata",
+          "resultDigest",
+          "delivery"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "BearerToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "SessionToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Session-Token"
+      },
+      "DeveloperKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Developer-Key"
+      },
+      "AgentKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Agent-Key"
+      },
+      "SkillDelegationReference": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aegir-Delegation",
+        "description": "Own freshly consented ags1 reference; old no-Skill references refused"
+      }
+    }
+  },
+  "x-aegir-r012-complete": false,
+  "productionReleaseAuthorized": false
+}

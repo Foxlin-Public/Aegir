@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — AEG-RC1-R004
+
+- Retire keyless signing/verification authority with fail-closed compatibility stubs.
+- Remove the custom digest; expose clearly named standard SHA-256 integrity utilities.
+- Reject signed portable envelopes and mark unsigned validation as integrity only.
+- Add shared digest vectors and historical-forgery rejection coverage across language copies.
+- Preserve server keyed receipt/message contracts; no SDK release or publication.
+
 ## 0.1.1-beta.1
 
 - move the canonical Aegir application host to `https://aegir.foxlinindustries.com`

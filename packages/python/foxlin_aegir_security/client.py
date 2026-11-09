@@ -4,7 +4,9 @@ import json
 from dataclasses import asdict
 from typing import Callable
 from urllib import parse, request
-from urllib.error import HTTPError
+import threading
+import re
+from ._legacy import OwnedTransport, LegacyFailure, strict_json, safe_value, validate_response, request_body as legacy_request_body, normalize_identity
 
 from .errors import AegirSecurityError
 from .models import ExposureSummary, IdentityActionRecord, IdentityGraphSnapshot, PerformIdentityActionRequest, ScanIdentityResult
@@ -21,6 +23,8 @@ class AegirDiagnosticsHooks:
 
 
 class AegirSecurityClient:
+    __slots__ = ("_base_url", "_config_key", "_developer_key", "_access_token", "_transport",
+                 "_native", "_diagnostics_hooks", "_options", "_closed", "_state_lock")
     def __init__(
         self,
         *,
@@ -30,16 +34,58 @@ class AegirSecurityClient:
         access_token: str | None = None,
         transport: Transport | None = None,
         diagnostics_hooks: AegirDiagnosticsHooks | None = None,
+        allow_trusted_custom_transport: bool = False,
+        timeout_seconds: float = 10,
+        cancel_event: threading.Event | None = None,
+        certificate_sha256: str | None = None,
+        expected_tenant_id: str | None = None,
+        expected_application_id: str | None = None,
+        expected_subject_id: str | None = None,
     ) -> None:
-        if not base_url or not base_url.strip():
-            raise ValueError("A base_url is required.")
-
-        self._base_url = base_url.rstrip("/")
-        self._config_key = config_key
-        self._developer_key = developer_key
-        self._access_token = access_token
-        self._transport = transport or self._default_transport
+        try:
+            if transport is not None and allow_trusted_custom_transport is not True:
+                raise LegacyFailure("invalid_configuration")
+            self._native = OwnedTransport(base_url, timeout_seconds, certificate_sha256, cancel_event)
+            self._options = dict(expected_tenant_id=expected_tenant_id, expected_application_id=expected_application_id,
+                                 expected_subject_id=expected_subject_id)
+            for value in self._options.values():
+                if value is not None and (not isinstance(value,str) or not value.strip() or len(value)>512):
+                    raise LegacyFailure("invalid_configuration")
+            for value in (developer_key, access_token):
+                if value is not None and (not isinstance(value,str) or not value or len(value)>16384 or re.search(r"[\r\n\0]",value)):
+                    raise LegacyFailure("invalid_configuration")
+        except Exception:
+            raise ValueError("Invalid Aegir client configuration.") from None
+        self._base_url = self._native.base_url
+        self._config_key = config_key # Deprecated input is never transmitted on identity routes.
+        self._developer_key, self._access_token = developer_key, access_token
+        self._transport = transport
         self._diagnostics_hooks = diagnostics_hooks
+        self._closed = False
+        self._state_lock = threading.RLock()
+
+    def __repr__(self):
+        return f"AegirSecurityClient(closed={self._closed})"
+
+    def __getstate__(self):
+        raise TypeError("Aegir clients containing credentials are not serializable.")
+
+    def cancel_pending(self):
+        """Abort owned active calls. Later calls remain permitted until close."""
+        self._native.cancel_pending()
+
+    def close(self):
+        """Permanently close this client; no later credential state update is allowed."""
+        with self._state_lock:
+            self._closed = True
+            self._access_token = self._developer_key = None
+            self._native.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
 
     def getToken(self, scope: str | None = None) -> dict:
         """Exchange the configured developer key for a signed access token.
@@ -57,7 +103,10 @@ class AegirSecurityClient:
         on every request, and the resulting credential carries only the scopes asked for.
         """
         token = self.getToken(scope)
-        self._access_token = token["access_token"]
+        with self._state_lock:
+            if self._closed:
+                raise AegirSecurityError("Aegir client is closed.",0,"transport_error",None,None)
+            self._access_token = token["access_token"]
         return token
 
     def useAgentKey(self, agentKey: str, scope: str | None = None) -> dict:
@@ -73,7 +122,10 @@ class AegirSecurityClient:
             body=json.dumps({"grantType": "agent_key", "scope": scope}),
             extra_headers={"X-Aegir-Agent-Key": agentKey},
         )
-        self._access_token = token["access_token"]
+        with self._state_lock:
+            if self._closed:
+                raise AegirSecurityError("Aegir client is closed.",0,"transport_error",None,None)
+            self._access_token = token["access_token"]
         return token
 
     def introspectToken(self, token: str) -> dict:
@@ -92,32 +144,32 @@ class AegirSecurityClient:
         )
 
     def scanIdentity(self, subjectId: str) -> ScanIdentityResult:
-        return ScanIdentityResult.from_json(self._request_json("scanIdentity", f"/security/scan/{parse.quote(subjectId, safe='')}"))
+        return _model(ScanIdentityResult.from_json,self._request_json("scanIdentity", f"/security/scan/{parse.quote(subjectId, safe='')}"))
 
     def getIdentityGraph(self, subjectId: str) -> IdentityGraphSnapshot:
-        return IdentityGraphSnapshot.from_json(self._request_json("getIdentityGraph", f"/security/graphs/{parse.quote(subjectId, safe='')}"))
+        return _model(IdentityGraphSnapshot.from_json,self._request_json("getIdentityGraph", f"/security/graphs/{parse.quote(subjectId, safe='')}"))
 
     def getIdentityGraphJson(self, subjectId: str) -> str:
         graph = self.getIdentityGraph(subjectId)
         return json.dumps(asdict(graph))
 
     def getExposureSummary(self, subjectId: str) -> ExposureSummary:
-        return ExposureSummary.from_json(self._request_json("getExposureSummary", f"/security/exposure/{parse.quote(subjectId, safe='')}"))
+        return _model(ExposureSummary.from_json,self._request_json("getExposureSummary", f"/security/exposure/{parse.quote(subjectId, safe='')}"))
 
     def performAction(self, action: PerformIdentityActionRequest) -> IdentityActionRecord:
-        return IdentityActionRecord.from_json(
+        return _model(IdentityActionRecord.from_json,
             self._request_json("performAction", "/security/actions", method="POST", body=json.dumps(action.to_json()))
         )
 
     def reverseAction(self, actionId: str, reason: str | None = None) -> IdentityActionRecord:
         suffix = f"?reason={parse.quote(reason, safe='')}" if reason else ""
-        return IdentityActionRecord.from_json(
+        return _model(IdentityActionRecord.from_json,
             self._request_json("reverseAction", f"/security/actions/{parse.quote(actionId, safe='')}/reverse{suffix}", method="POST")
         )
 
     def getActionHistory(self, subjectId: str) -> list[IdentityActionRecord]:
         payload = self._request_json("getActionHistory", f"/security/actions/history/{parse.quote(subjectId, safe='')}")
-        return [IdentityActionRecord.from_json(item) for item in payload]
+        return [_model(IdentityActionRecord.from_json,item) for item in payload]
 
     # --- Canonical transactions --------------------------------------------------------
     #
@@ -324,115 +376,86 @@ class AegirSecurityClient:
         body: str | None = None,
         extra_headers: dict[str, str] | None = None,
     ):
+        try:
+            return self._native.run(lambda lifetime: self._request_core(operation, path, method=method,
+                body=body, extra_headers=extra_headers, lifetime=lifetime))
+        except AegirSecurityError:
+            raise
+        except Exception:
+            raise AegirSecurityError("Aegir request failed or was cancelled.",0,"transport_error",None,None) from None
+
+    def _request_core(self, operation, path, *, method, body, extra_headers, lifetime):
         headers = {"Accept": "application/json"}
-        if body is not None:
-            headers["Content-Type"] = "application/json"
-        if self._config_key:
-            headers["X-Aegir-Config-Key"] = self._config_key
-
-        # A bearer token takes precedence: once one has been obtained there is no reason to
-        # keep presenting the long-lived developer key on every request.
-        if self._access_token:
-            headers["Authorization"] = f"Bearer {self._access_token}"
-        elif self._developer_key:
-            headers["X-Aegir-Developer-Key"] = self._developer_key
-
+        if body is not None: headers["Content-Type"] = "application/json"
+        with self._state_lock:
+            if self._closed:
+                raise AegirSecurityError("Aegir client is closed.",0,"transport_error",None,None)
+            if not (extra_headers and "X-Aegir-Agent-Key" in extra_headers):
+                if self._access_token: headers["Authorization"] = f"Bearer {self._access_token}"
+                elif self._developer_key: headers["X-Aegir-Developer-Key"] = self._developer_key
+            credentials = [v for v in (self._access_token,self._developer_key,self._config_key) if isinstance(v,str) and v]
         if extra_headers:
-            headers.update(extra_headers)
-
-        self._emit_trace({
-            "traceName": "request.start",
-            "operation": operation,
-            "tracePhase": "request.start",
-            "occurredAtUtc": _utc_now(),
-            "correlationId": None,
-            "metadata": {"path": path, "method": method},
-        })
-        self._emit_log({
-            "level": "information",
-            "eventName": "request.start",
-            "message": f"Starting {operation}.",
-            "operation": operation,
-            "correlationId": None,
-            "occurredAtUtc": _utc_now(),
-            "metadata": {"path": path, "method": method},
-        })
-
-        status, payload = self._transport(f"{self._base_url}/v1{path}", method, headers, body)
-        correlation_id = payload.get("correlationId") if isinstance(payload, dict) else None
-        code = _resolve_error_code(status, payload)
-        self._emit_metric({
-            "metricName": "aegir.client.request.duration",
-            "value": 0,
-            "unit": "ms",
-            "observedAtUtc": _utc_now(),
-            "dimensions": {"operation": operation, "status": str(status), "errorCode": code},
-        })
+            headers.update(extra_headers); credentials.extend(v for v in extra_headers.values() if isinstance(v,str) and v)
+        # Preserve full credentials and every nonempty id:secret component, longest first.
+        secrets = sorted({part for value in credentials for part in (value, *value.split(":")) if part}, key=len, reverse=True)
+        try: request_body = strict_json(body) if body is not None else {}
+        except Exception:
+            raise AegirSecurityError("Invalid Aegir request.",0,"invalid_request",None,None) from None
+        def collect(v):
+            if isinstance(v,str): secrets.append(v)
+            elif isinstance(v,dict):
+                for x in v.values(): collect(x)
+            elif isinstance(v,list):
+                for x in v: collect(x)
+        collect(request_body)
+        self._emit_trace(dict(traceName="request.start",operation=operation,tracePhase="request.start",occurredAtUtc=_utc_now(),correlationId=None,metadata={"method":method}),lifetime)
+        self._emit_log(dict(level="information",eventName="request.start",message=f"Starting {operation}.",operation=operation,correlationId=None,occurredAtUtc=_utc_now(),metadata={"method":method}),lifetime)
+        try:
+            wire_body=json.dumps(legacy_request_body(operation,request_body)) if body is not None else None
+            status,payload = self._native.call(f"{self._base_url}/v1{path}",method,headers,wire_body,self._transport,lifetime)
+            if type(status) is not int or not 100 <= status <= 599: raise LegacyFailure("invalid_server_response")
+        except Exception:
+            raise AegirSecurityError("Aegir transport request failed or was cancelled.",0,"transport_error",None,None) from None
+        safe_body = safe_value(payload,secrets)
+        correlation_id = safe_body.get("correlationId") if isinstance(safe_body,dict) else None
+        if not isinstance(correlation_id,str) or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}",correlation_id): correlation_id=None
+        code = _resolve_error_code(status,safe_body)
+        if not re.fullmatch(r"[a-z][a-z0-9_.:-]{0,127}",code): code="unknown_error"
+        self._emit_metric(dict(metricName="aegir.client.request.duration",value=0,unit="ms",observedAtUtc=_utc_now(),dimensions={"operation":operation,"status":str(status),"errorCode":code}),lifetime)
         if status < 200 or status >= 300:
-            self._emit_log({
-                "level": "error",
-                "eventName": "request.error",
-                "message": f"Aegir request failed with status {status}.",
-                "operation": operation,
-                "correlationId": correlation_id,
-                "occurredAtUtc": _utc_now(),
-                "metadata": {"status": str(status), "errorCode": code},
-            })
-            self._emit_trace({
-                "traceName": "request.error",
-                "operation": operation,
-                "tracePhase": "request.error",
-                "occurredAtUtc": _utc_now(),
-                "correlationId": correlation_id,
-                "metadata": {"status": str(status), "errorCode": code},
-            })
-            raise AegirSecurityError(f"Aegir request failed with status {status}.", status, code, correlation_id, payload)
-        self._emit_log({
-            "level": "information",
-            "eventName": "request.complete",
-            "message": f"Completed {operation}.",
-            "operation": operation,
-            "correlationId": correlation_id,
-            "occurredAtUtc": _utc_now(),
-            "metadata": {"status": str(status)},
-        })
-        self._emit_trace({
-            "traceName": "request.complete",
-            "operation": operation,
-            "tracePhase": "request.complete",
-            "occurredAtUtc": _utc_now(),
-            "correlationId": correlation_id,
-            "metadata": {"status": str(status)},
-        })
+            raise AegirSecurityError(f"Aegir request failed with status {status}.",status,code,correlation_id,safe_body)
+        try:
+            if status != (201 if operation in ("createTransaction","registerAgent") else 200): raise LegacyFailure("invalid_server_response")
+            key=headers.get("X-Aegir-Agent-Key")
+            agent_subject=key.split(":",1)[0] if key else None
+            if key and (":" not in key or not agent_subject or not key.split(":",1)[1]): raise LegacyFailure("invalid_request")
+            validate_response(operation,path,payload,request_body,self._options,agent_subject)
+            normalize_identity(operation,payload)
+            with self._state_lock:
+                if self._closed: raise LegacyFailure("client_closed")
+        except Exception:
+            raise AegirSecurityError("Aegir returned an invalid or mismatched response.",status,"transport_error",correlation_id,None) from None
+        self._emit_log(dict(level="information",eventName="request.complete",message=f"Completed {operation}.",operation=operation,correlationId=correlation_id,occurredAtUtc=_utc_now(),metadata={"status":str(status)}),lifetime)
+        self._emit_trace(dict(traceName="request.complete",operation=operation,tracePhase="request.complete",occurredAtUtc=_utc_now(),correlationId=correlation_id,metadata={"status":str(status)}),lifetime)
+        with self._state_lock:
+            if self._closed: raise AegirSecurityError("Aegir client is closed.",0,"transport_error",None,None)
         return payload
 
-    def _emit_log(self, entry) -> None:
-        if self._diagnostics_hooks and self._diagnostics_hooks.log:
-            self._diagnostics_hooks.log(entry)
+    def _emit_log(self, entry, lifetime) -> None:
+        self._native.observe(self._diagnostics_hooks.log if self._diagnostics_hooks else None, entry, lifetime)
 
-    def _emit_metric(self, event) -> None:
-        if self._diagnostics_hooks and self._diagnostics_hooks.metric:
-            self._diagnostics_hooks.metric(event)
+    def _emit_metric(self, event, lifetime) -> None:
+        self._native.observe(self._diagnostics_hooks.metric if self._diagnostics_hooks else None, event, lifetime)
 
-    def _emit_trace(self, event) -> None:
-        if self._diagnostics_hooks and self._diagnostics_hooks.trace:
-            self._diagnostics_hooks.trace(event)
+    def _emit_trace(self, event, lifetime) -> None:
+        self._native.observe(self._diagnostics_hooks.trace if self._diagnostics_hooks else None, event, lifetime)
 
     @staticmethod
-    def _default_transport(url: str, method: str, headers: dict[str, str], body: str | None) -> tuple[int, object]:
-        data = body.encode("utf-8") if body is not None else None
-        req = request.Request(url, data=data, headers=headers, method=method)
-        try:
-            with request.urlopen(req) as response:
-                text = response.read().decode("utf-8")
-                return response.status, json.loads(text) if text else None
-        except HTTPError as ex:
-            text = ex.read().decode("utf-8")
-            try:
-                parsed = json.loads(text) if text else None
-            except json.JSONDecodeError:
-                parsed = text
-            return ex.code, parsed
+    def _default_transport(url: str, method: str, headers: dict[str,str], body: str | None) -> tuple[int,object]:
+        """Retained private helper; actual clients own and dispose their native transport."""
+        native=OwnedTransport(url.split("/v1",1)[0],10)
+        try: return native.call(url,method,headers,body)
+        finally: native.close()
 
 
 def _utc_now() -> str:
@@ -461,3 +484,9 @@ def _resolve_error_code(status: int, payload) -> str:
     if status >= 500:
         return "server_error"
     return "unknown_error"
+
+
+def _model(factory,value):
+    try: return factory(value)
+    except Exception:
+        raise AegirSecurityError("Aegir returned an invalid identity model.",200,"transport_error",None,None) from None
